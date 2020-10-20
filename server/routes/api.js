@@ -190,7 +190,7 @@ router.post('/register/medecin', async (req, res) => {
 
     } else {
 
-        res.status(400).json({ message: 'Not found.' })
+        res.status(400).json({ message: 'Bad request. Deja pris.' })
 
     }
 
@@ -362,7 +362,7 @@ router.post(('/add/service'), async (req, res) => {
     const occupation = req.body.occupe
     const chef = req.body.chef
 
-    if (typeof nom == String && nom == "") {
+    if (typeof nom == String && nom != "") {
 
         let medecinId = -1
 
@@ -388,7 +388,7 @@ router.post(('/add/service'), async (req, res) => {
 
         if (validation === true) {
 
-            const requete = "INSERT INTO patient(nom,capacite,occupe,chef) values($1,$2,$3,$4) RETURNING *"
+            const requete = "INSERT INTO service(nom,capacite,occupe,chef) values($1,$2,$3,$4) RETURNING *"
     
             const result = await db.query({
                 text: requete,
@@ -406,6 +406,10 @@ router.post(('/add/service'), async (req, res) => {
             res.status(404).json({ message: 'Not found. Medecin inconnu.' })
     
         }
+
+    }else{
+    
+        res.status(400).json({ message: 'Bad request' })
 
     }
 
