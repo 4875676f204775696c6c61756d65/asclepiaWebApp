@@ -403,7 +403,7 @@ router.post(('/add/service'), async (req, res) => {
     
         } else {
     
-            res.status(400).json({ message: 'Not found.' })
+            res.status(404).json({ message: 'Not found. Medecin inconnu.' })
     
         }
 
