@@ -362,7 +362,9 @@ router.post(('/add/service'), async (req, res) => {
     const occupation = req.body.occupe
     const chef = req.body.chef
 
-    if (typeof nom == String && nom != "") {
+    if (nom !== '') {
+
+        let validation = true
 
         let medecinId = -1
 
@@ -416,6 +418,66 @@ router.post(('/add/service'), async (req, res) => {
 
 })
 
+router.post(('/add/service'), async (req, res) => {
 
+
+
+})
+
+router.post(('/add/maladie'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/symptome'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/allergie'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/traitement'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/examen'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/consultation'), async (req, res) => {
+
+
+
+})
+
+router.post(('/add/hospitalisation'), async (req, res) => {
+
+
+
+})
+
+router.put(('/update/patient/:champ'), async (req, res) => {
+
+    //Fait celle ci
+
+})
+
+router.put(('/update/medecin/:champ'), async (req, res) => {
+
+    //Ensuite celle la
+    // a l exclusion de mdp qui demande une protection particuliere 
+    //Ne jamais RENVOYER le mdp
+
+})
 
 module.exports = router
