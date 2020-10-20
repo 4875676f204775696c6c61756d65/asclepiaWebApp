@@ -480,4 +480,52 @@ router.put(('/update/medecin/:champ'), async (req, res) => {
 
 })
 
+router.put(('/update/maladie/:champ'), async (req,res) => {
+
+
+
+})  
+
+router.put(('/update/symptome/:champ'), async (req,res) => {
+
+    
+
+})  
+
+router.put(('/update/consultation/:champ'), async (req,res) => {
+
+    
+
+})  
+
+router.put(('/update/examen/:champ'), async (req,res) => {
+
+    
+
+})  
+
+router.put(('/update/allergie/:champ'), async (req,res) => {
+
+    
+
+})  
+
+router.put(('/update/administratif/:champ'), async (req,res) => {
+
+    // Sans password qui sera speciale
+
+})  
+
+router.put(('/update/maladie/:champ'), async (req,res) => {
+
+    
+
+})  
+
+router.put(('/update/maladie/:champ'), async (req,res) => {
+
+    
+
+})  
+
 module.exports = router
