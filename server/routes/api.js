@@ -391,26 +391,26 @@ router.post(('/add/service'), async (req, res) => {
         if (validation === true) {
 
             const requete = "INSERT INTO service(nom,capacite,occupe,chef) values($1,$2,$3,$4) RETURNING *"
-    
+
             const result = await db.query({
                 text: requete,
                 values: [nom, capacite, occupation, medecinId]
             })
-    
+
             if (result.rowCount == 0) {
                 res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer.' })
             } else {
                 res.json(result.rows)
             }
-    
+
         } else {
-    
+
             res.status(404).json({ message: 'Not found. Medecin inconnu.' })
-    
+
         }
 
-    }else{
-    
+    } else {
+
         res.status(400).json({ message: 'Bad request' })
 
     }
@@ -418,13 +418,38 @@ router.post(('/add/service'), async (req, res) => {
 
 })
 
-router.post(('/add/service'), async (req, res) => {
-
-
-
-})
 
 router.post(('/add/maladie'), async (req, res) => {
+
+    const nom = req.body.nom
+    const cause = req.body.cause
+    const diagnostic = req.body.diagnostic
+    const patient = req.body.patient
+    const actuel = req.body.actuel
+    const hospitalisation = req.body.hospitalisation
+
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO maladie(nom,cause,diagnostic,patient,actuel,hospitalisation) values($1,$2,$3,$4,$5,$6,$7) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, cause, diagnostic, patient, actuel, hospitalisation]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(40).json({ message: 'Bad request.' })
+
+    }
 
 
 
@@ -432,19 +457,99 @@ router.post(('/add/maladie'), async (req, res) => {
 
 router.post(('/add/symptome'), async (req, res) => {
 
+    const nom = req.body.nom
+    const intensite = req.body.intensite
+    const description = req.body.descritption
+    const maladie = req.body.maladie
 
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO symptome(nom,intensite,description,maladie) values($1,$2,$3,$4) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, intensite, description, maladie]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(40).json({ message: 'Bad request.' })
+
+    }
 
 })
 
 router.post(('/add/allergie'), async (req, res) => {
 
+    const nom = req.body.nom
+    const examen = req.body.examen
+    const patient = req.body.patient
 
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO allergie(nom,examen,patient) values($1,$2,$3) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, examen, patient]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(40).json({ message: 'Bad request.' })
+
+    }
 
 })
 
 router.post(('/add/traitement'), async (req, res) => {
 
+    // Faire les traitements
 
+    const nom = req.body.nom
+    const posologie = req.body.posologie
+    const duree = req.body.duree
+    const maladie = req.body.maladie
+    const allergie = req.body.allergie
+
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO traitement(nom,posologie,duree,maladie,allergie) values($1,$2,$3,$4,$5) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, posologie, duree, maladie, allergie]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(40).json({ message: 'Bad request.' })
+
+    }
 
 })
 
@@ -480,52 +585,52 @@ router.put(('/update/medecin/:champ'), async (req, res) => {
 
 })
 
-router.put(('/update/maladie/:champ'), async (req,res) => {
+router.put(('/update/maladie/:champ'), async (req, res) => {
 
 
 
-})  
+})
 
-router.put(('/update/symptome/:champ'), async (req,res) => {
+router.put(('/update/symptome/:champ'), async (req, res) => {
 
-    
 
-})  
 
-router.put(('/update/consultation/:champ'), async (req,res) => {
+})
 
-    
+router.put(('/update/consultation/:champ'), async (req, res) => {
 
-})  
 
-router.put(('/update/examen/:champ'), async (req,res) => {
 
-    
+})
 
-})  
+router.put(('/update/examen/:champ'), async (req, res) => {
 
-router.put(('/update/allergie/:champ'), async (req,res) => {
 
-    
 
-})  
+})
 
-router.put(('/update/administratif/:champ'), async (req,res) => {
+router.put(('/update/allergie/:champ'), async (req, res) => {
+
+
+
+})
+
+router.put(('/update/administratif/:champ'), async (req, res) => {
 
     // Sans password qui sera speciale
 
-})  
+})
 
-router.put(('/update/maladie/:champ'), async (req,res) => {
+router.put(('/update/maladie/:champ'), async (req, res) => {
 
-    
 
-})  
 
-router.put(('/update/maladie/:champ'), async (req,res) => {
+})
 
-    
+router.put(('/update/maladie/:champ'), async (req, res) => {
 
-})  
+
+
+})
 
 module.exports = router
