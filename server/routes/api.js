@@ -67,6 +67,10 @@ router.get('/table/:nom', async (req, res) => {
 
             requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table
 
+        } else if (table == 'administratif') {
+
+            requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table
+
         } else {
 
             requete = "SELECT * FROM " + table
@@ -82,6 +86,137 @@ router.get('/table/:nom', async (req, res) => {
             res.json({ message: 'Empty' })
         } else {
             res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(404).json({ message: 'Table not found' })
+
+    }
+
+})
+
+router.get('/get/:table', async (req, res) => {
+
+    const table = req.params.table
+    const champ = req.body.champ
+    const id = req.body.id
+
+    let exist
+
+    if (table == 'index') {
+        exist = true
+    } else {
+        exist = false
+    }
+
+    if (exist === false) {
+
+        const verif_req = "SELECT * FROM index"
+
+        const verif = await db.query({
+            text: verif_req
+        })
+
+        for (i = 0; i < verif.rowCount; i++) {
+
+            if (table == verif.rows[i].nom) {
+                exist = true
+            }
+
+        }
+
+    }
+
+    if(champ == 'mdp' || champ == '*'){
+        res.status(401).json({ message: 'C\'est mal de chercher à hacker les api.'})
+    }
+
+    if (exist === true) {
+
+        const requete = "SELECT id," + champ + " FROM " + table + " WHERE id=$1"
+
+        const result = await db.query({
+            text: requete,
+            values: [id]
+        })
+
+        if (result.rowCount == 0) {
+            res.json({ message: 'Empty' })
+        } else {
+            
+            res.json(result.rows)
+        
+        }
+
+    } else {
+
+        res.status(404).json({ message: 'Table not found' })
+
+    }
+
+})
+
+router.get('/getAll/:table', async (req, res) => {
+
+    const table = req.params.table
+    const id = req.body.id
+
+    let exist
+
+    if (table == 'index') {
+        exist = true
+    } else {
+        exist = false
+    }
+
+    if (exist === false) {
+
+        const verif_req = "SELECT * FROM index"
+
+        const verif = await db.query({
+            text: verif_req
+        })
+
+        for (i = 0; i < verif.rowCount; i++) {
+
+            if (table == verif.rows[i].nom) {
+                exist = true
+            }
+
+        }
+
+    }
+
+    if (exist === true) {
+
+        let requete
+
+        if (table == 'medecin') {
+
+            requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table + " WHERE id=$1"
+
+        } else if (table == 'administratif') {
+
+            requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table + " WHERE id=$1"
+
+        } else {
+
+            requete = "SELECT * FROM " + table + " WHERE id=$1"
+
+        }
+
+        const result = await db.query({
+            text: requete,
+            values: [id]
+        })
+
+        if (result.rowCount == 0) {
+            res.json({ message: 'Empty' })
+        } else {
+            
+            res.json(result.rows)
+        
         }
 
     } else {
@@ -432,7 +567,7 @@ router.post(('/add/maladie'), async (req, res) => {
 
     if (validation === true) {
 
-        const requete = "INSERT INTO maladie(nom,cause,diagnostic,patient,actuel,hospitalisation) values($1,$2,$3,$4,$5,$6,$7) RETURNING *"
+        const requete = "INSERT INTO maladie(nom,cause,diagnostic,patient,actuel,hospitalisation) values($1,$2,$3,$4,$5,$6) RETURNING *"
 
         const result = await db.query({
             text: requete,
@@ -481,7 +616,7 @@ router.post(('/add/symptome'), async (req, res) => {
 
     } else {
 
-        res.status(40).json({ message: 'Bad request.' })
+        res.status(400).json({ message: 'Bad request.' })
 
     }
 
@@ -512,7 +647,7 @@ router.post(('/add/allergie'), async (req, res) => {
 
     } else {
 
-        res.status(40).json({ message: 'Bad request.' })
+        res.status(400).json({ message: 'Bad request.' })
 
     }
 
@@ -547,7 +682,7 @@ router.post(('/add/traitement'), async (req, res) => {
 
     } else {
 
-        res.status(40).json({ message: 'Bad request.' })
+        res.status(400).json({ message: 'Bad request.' })
 
     }
 
@@ -555,80 +690,238 @@ router.post(('/add/traitement'), async (req, res) => {
 
 router.post(('/add/examen'), async (req, res) => {
 
+    const nom = req.body.nom
+    const resulat = req.body.resulat
+    const date = req.body.date
+    const consultation = req.body.consultation
+    const patient = req.body.patient
+    const hospitalisation = req.body.hospitalisation
+    const maladie = req.body.maladie
 
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO examen(nom,resultat,date,consultation,maladie,patient,hospitalisation) values($1,$2,$3,$4,$5,$6,$7) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, resulat, date, consultation, maladie, patient, hospitalisation]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(400).json({ message: 'Bad request.' })
+
+    }
 
 })
 
 router.post(('/add/consultation'), async (req, res) => {
 
+    const nom = req.body.nom
+    const date = req.body.date
+    const patient = req.body.patient
+    const medecin = req.body.medecin
+    const commentaire = req.body.commentaire
 
+
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO consultation(nom,date,patient,medecin,commentaire) values($1,$2,$3,$4,$5) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [nom, date, patient, medecin, commentaire]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(400).json({ message: 'Bad request.' })
+
+    }
 
 })
 
 router.post(('/add/hospitalisation'), async (req, res) => {
 
+    const debut = req.body.debut
+    const fin = req.body.fin
+    const resume = req.body.resume
+    const patient = req.body.patient
+    const medecin = req.body.medecin
+
+
+    let validation = true
+
+    if (validation === true) {
+
+        const requete = "INSERT INTO hospitalisation(debut,fin,resume,patient,medecin) values($1,$2,$3,$4,$5) RETURNING *"
+
+        const result = await db.query({
+            text: requete,
+            values: [debut, fin, resume, patient, medecin]
+        })
+
+        if (result.rowCount == 0) {
+            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+        } else {
+            res.json(result.rows)
+        }
+
+    } else {
+
+        res.status(400).json({ message: 'Bad request.' })
+
+    }
 
 
 })
 
-router.put(('/update/patient/:champ'), async (req, res) => {
+router.put(('/update/:table'), async (req, res) => {
 
-    //Fait celle ci
+    const table = req.params.table
+    const champ = req.body.champ
+    const id = req.body.id
+    const valeur = req.body.valeur
+
+    let validation = false
+
+    if (table == 'index') {
+        validation = true
+    }
+
+    if (validation === false) {
+
+        const verif_req = "SELECT * FROM index"
+
+        const verif = await db.query({
+            text: verif_req
+        })
+
+        for (i = 0; i < verif.rowCount; i++) {
+
+            if (table == verif.rows[i].nom) {
+                validation = true
+            }
+
+        }
+
+    }
+
+    if (validation === true) {
+
+        const verif_req = "SELECT " + champ + " FROM " + table
+
+        const verif = await db.query({
+            text: verif_req
+        })
+
+        if (verif_req.rowCount == 0) {
+            validation = false
+        }
+
+        if (champ == 'mdp' || champ == 'id') {
+            validation = false
+        }
+
+        if (validation === true) {
+
+            const requete = "UPDATE " + table + " SET " + champ + "=$1 WHERE id=$2 RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [valeur, id]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la mise a jour de la base de donnes.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+    
+        }
+
+    } else {
+
+        res.status(400).json({ message: 'Bad request.' })
+
+    }
+
 
 })
 
-router.put(('/update/medecin/:champ'), async (req, res) => {
+router.delete(('/delete/:table'), async (req,res) => {
 
-    //Ensuite celle la
-    // a l exclusion de mdp qui demande une protection particuliere 
-    //Ne jamais RENVOYER le mdp
+    const table = req.params.table
+    const id = req.body.id
 
-})
+    let exist
 
-router.put(('/update/maladie/:champ'), async (req, res) => {
+    if (table == 'index') {
+        exist = true
+    } else {
+        exist = false
+    }
 
+    if (exist === false) {
 
+        const verif_req = "SELECT * FROM index"
 
-})
+        const verif = await db.query({
+            text: verif_req
+        })
 
-router.put(('/update/symptome/:champ'), async (req, res) => {
+        for (i = 0; i < verif.rowCount; i++) {
 
+            if (table == verif.rows[i].nom) {
+                exist = true
+            }
 
+        }
 
-})
+    }
 
-router.put(('/update/consultation/:champ'), async (req, res) => {
+    if (exist === true) {
 
+        let requete
 
+        requete = "DELETE FROM " + table + " WHERE id=$1"
 
-})
+       const result = await db.query({
+            text: requete,
+            values: [id]
+        })
 
-router.put(('/update/examen/:champ'), async (req, res) => {
+        if(result.rowCount == 1){
+            res.json({ message: ' Element ' + id + ' de la table '  + table + ' supprimé.'})
+        }else{
+            res.status(400).json({ message: 'Erreur lors de la suppression.'})
+        }
 
+    } else {
 
+        res.status(404).json({ message: 'Table not found' })
 
-})
-
-router.put(('/update/allergie/:champ'), async (req, res) => {
-
-
-
-})
-
-router.put(('/update/administratif/:champ'), async (req, res) => {
-
-    // Sans password qui sera speciale
-
-})
-
-router.put(('/update/maladie/:champ'), async (req, res) => {
-
-
-
-})
-
-router.put(('/update/maladie/:champ'), async (req, res) => {
-
+    }
 
 
 })
