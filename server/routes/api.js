@@ -6,6 +6,17 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 const { Client } = require('pg')
 
+class Info {
+    constructor() {
+        this.loggedAt = new Date()
+        this.nom
+        this.prenom
+        this.role
+        this.service
+        this.poste
+    }
+}
+
 const db = new Client({
     user: 'postgres',
     host: 'localhost',
@@ -26,6 +37,64 @@ router.use((req, res, next) => {
 router.get('/test', (req, res) => {
 
     res.json({ message: 'hola pepito' })
+
+})
+
+router.post(('/login/:role'), async (req, res) => {
+
+    const table = req.params.role
+    const pseudo = req.body.pseudo
+    const mdp = req.body.mdp
+
+    let validation = true
+
+    if (table != 'medecin' && table != 'administratif') {
+        validation = false
+    }
+
+    if (pseudo == '' || mdp == '') {
+        validation = false
+    }
+
+    if (typeof req.session.info == undefined && validation == true) {
+
+        const requete = "SELECT * FROM " + table + " WHERE pseudo=$1"
+
+        const result = await db.query({
+            text: requete,
+            values: [pseudo]
+        })
+
+        const logger = await bcrypt.compare(mdp, result.rows[0].mdp)
+
+        if (logger == true) {
+
+            req.session.info = new Info()
+
+            req.session.userId = result.rows[0].id
+            req.session.info.nom = result.rows[0].nom
+            req.session.info.prenom = result.rows[0].prenom
+            req.session.info.role = table
+
+            if (table == 'medecin') {
+                req.session.info.service = result.rows[0].service
+            } else {
+                req.session.info.poste = result.rows[0].poste
+            }
+
+            res.json({ message: 'Vous etes bien logger' })
+
+        } else {
+
+            res.status(401).json({ message: 'Mot de passe invalide' })
+
+        }
+
+    } else {
+
+        res.status(400).json({ message: 'Vous etes deja logger' })
+
+    }
 
 })
 
@@ -98,60 +167,68 @@ router.get('/table/:nom', async (req, res) => {
 
 router.get('/get/:table', async (req, res) => {
 
-    const table = req.params.table
-    const champ = req.body.champ
-    const id = req.body.id
+    if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {
 
-    let exist
+        const table = req.params.table
+        const champ = req.body.champ
+        const id = req.body.id
 
-    if (table == 'index') {
-        exist = true
-    } else {
-        exist = false
-    }
+        let exist
 
-    if (exist === false) {
+        if (table == 'index') {
+            exist = true
+        } else {
+            exist = false
+        }
 
-        const verif_req = "SELECT * FROM index"
+        if (exist === false) {
 
-        const verif = await db.query({
-            text: verif_req
-        })
+            const verif_req = "SELECT * FROM index"
 
-        for (i = 0; i < verif.rowCount; i++) {
+            const verif = await db.query({
+                text: verif_req
+            })
 
-            if (table == verif.rows[i].nom) {
-                exist = true
+            for (i = 0; i < verif.rowCount; i++) {
+
+                if (table == verif.rows[i].nom) {
+                    exist = true
+                }
+
             }
 
         }
 
-    }
+        if (champ == 'mdp' || champ == '*') {
+            res.status(401).json({ message: 'C\'est mal de chercher à hacker les api.' })
+        }
 
-    if(champ == 'mdp' || champ == '*'){
-        res.status(401).json({ message: 'C\'est mal de chercher à hacker les api.'})
-    }
+        if (exist === true) {
 
-    if (exist === true) {
+            const requete = "SELECT id," + champ + " FROM " + table + " WHERE id=$1"
 
-        const requete = "SELECT id," + champ + " FROM " + table + " WHERE id=$1"
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
 
-        const result = await db.query({
-            text: requete,
-            values: [id]
-        })
+            if (result.rowCount == 0) {
+                res.json({ message: 'Empty' })
+            } else {
 
-        if (result.rowCount == 0) {
-            res.json({ message: 'Empty' })
+                res.json(result.rows)
+
+            }
+
         } else {
-            
-            res.json(result.rows)
-        
+
+            res.status(404).json({ message: 'Table not found' })
+
         }
 
     } else {
 
-        res.status(404).json({ message: 'Table not found' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
 
@@ -159,96 +236,113 @@ router.get('/get/:table', async (req, res) => {
 
 router.get('/getAll/:table', async (req, res) => {
 
-    const table = req.params.table
-    const id = req.body.id
+    if (req.session.info.role === 'medecin' || req.session.info.role === 'administratif') {
 
-    let exist
+        const table = req.params.table
+        const id = req.body.id
 
-    if (table == 'index') {
-        exist = true
-    } else {
-        exist = false
-    }
+        let exist
 
-    if (exist === false) {
+        if (table == 'index') {
+            exist = true
+        } else {
+            exist = false
+        }
 
-        const verif_req = "SELECT * FROM index"
+        if (exist === false) {
 
-        const verif = await db.query({
-            text: verif_req
-        })
+            const verif_req = "SELECT * FROM index"
 
-        for (i = 0; i < verif.rowCount; i++) {
+            const verif = await db.query({
+                text: verif_req
+            })
 
-            if (table == verif.rows[i].nom) {
-                exist = true
+            for (i = 0; i < verif.rowCount; i++) {
+
+                if (table == verif.rows[i].nom) {
+                    exist = true
+                }
+
             }
 
         }
 
-    }
+        if (exist === true) {
 
-    if (exist === true) {
+            let requete
 
-        let requete
+            if (table == 'medecin') {
 
-        if (table == 'medecin') {
+                requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table + " WHERE id=$1"
 
-            requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table + " WHERE id=$1"
+            } else if (table == 'administratif') {
 
-        } else if (table == 'administratif') {
+                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table + " WHERE id=$1"
 
-            requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table + " WHERE id=$1"
+            } else {
+
+                requete = "SELECT * FROM " + table + " WHERE id=$1"
+
+            }
+
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount == 0) {
+                res.json({ message: 'Empty' })
+            } else {
+
+                res.json(result.rows)
+
+            }
 
         } else {
 
-            requete = "SELECT * FROM " + table + " WHERE id=$1"
+            res.status(404).json({ message: 'Table not found' })
 
-        }
-
-        const result = await db.query({
-            text: requete,
-            values: [id]
-        })
-
-        if (result.rowCount == 0) {
-            res.json({ message: 'Empty' })
-        } else {
-            
-            res.json(result.rows)
-        
         }
 
     } else {
 
-        res.status(404).json({ message: 'Table not found' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
+
 
 })
 
 router.post(('/add/index'), async (req, res) => {
 
-    const nom = req.body.nom
+    if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {
 
-    if (typeof nom != String && nom != '') {
+        const nom = req.body.nom
 
-        const requete = "INSERT INTO index(nom) VALUES($1) RETURNING *"
+        if (typeof nom != String && nom != '') {
 
-        const result = await db.query({
-            text: requete,
-            values: [nom]
-        })
+            const requete = "INSERT INTO index(nom) VALUES($1) RETURNING *"
 
-        if (result.rowCount == 0) {
-            res.json({ message: 'Erreur lors de l\'ajout' })
+            const result = await db.query({
+                text: requete,
+                values: [nom]
+            })
+
+            if (result.rowCount == 0) {
+                res.json({ message: 'Erreur lors de l\'ajout' })
+            } else {
+                res.json(result.rows)
+            }
+
         } else {
-            res.json(result.rows)
+
+            res.status(400).json({ message: 'Bad request' })
+
         }
 
     } else {
 
-        res.status(400).json({ message: 'Bad request' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
 
@@ -387,123 +481,67 @@ router.post('/register/administratif', async (req, res) => {
 
 router.post('/add/patient', async (req, res) => {
 
-    const prenom = req.body.prenom
-    const nom = req.body.nom
-    const nsc = req.body.nsc
-    const age = req.body.age
-    const sexe = req.body.sexe  //true = homme et false == femme
-    const birthDate = req.body.naissance
-    const birthPlace = req.body.lieu
-    const tel = req.body.tel
-    const adresse = req.body.adresse
-    const profession = req.body.profession
-    const mutuelle = req.body.mutuelle
-    const medecin = req.body.medecin
-    const antecedant = req.body.antecedant
-    const urgence = req.body.urgence
-    const sport = req.body.sport
-    const enfant = req.body.enfant
-    const service = req.body.service
+    if (req.session.info.role == 'medecin') {
 
-    let validation = true
-
-    const verif_req_pseudo = "SELECT nsc FROM patient"
-
-    const verif_pseudo = await db.query({
-        text: verif_req_pseudo
-    })
-
-    for (i = 0; i < verif_pseudo.rowCount; i++) {
-
-        if (nsc == verif_pseudo.rows[i].nsc) {
-            validation = false
-        }
-
-    }
-
-    //Tester cette partie apres avoir fait un service ...
-
-    let serviceId = -1
-
-    const verif_req_service = "SELECT id,nom FROM " + service
-
-    const verif_service = await db.query({
-        text: verif_req_service
-    })
-
-    for (i = 0; i < verif_service.rowCount; i++) {
-
-        if (service == verif_service.rows[i].nom) {
-            serviceId = verif_service.rows[i].id
-        }
-
-    }
-
-    if (serviceId == -1) {
-        validation = false
-    }
-
-    let medecinId = -1
-
-    const verif_req_med = "SELECT id,nom FROM medecin"
-
-    const verif_med = await db.query({
-        text: verif_req_med
-    })
-
-    for (i = 0; i < verif_med.rowCount; i++) {
-
-        if (medecin == verif_med.rows[i].nom) {
-            medecinId = verif_med.rows[i].id
-        }
-
-    }
-
-    if (medecinId == -1) {
-
-        validation = false
-
-    }
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO patient(nom,prenom,nsc,age,sexe,lieu,tel,adresse,profession,mutuelle,antecedent,sport,medecin,service,enfant,urgence,naissance) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *"
-
-        //const requete = "INSERT INTO patient(nom,prénom,nsc,age,sexe) VALUES($1,$2,$3,$4,$5)"
-        const result = await db.query({
-            text: requete,
-            values: [nom, prenom, nsc, age, sexe, birthPlace, tel, adresse, profession, mutuelle, antecedant, sport, medecinId, serviceId, enfant, urgence, birthDate]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Not found.' })
-
-    }
-
-
-})
-
-router.post(('/add/service'), async (req, res) => {
-
-    const nom = req.body.nom
-    const capacite = req.body.capacite
-    const occupation = req.body.occupe
-    const chef = req.body.chef
-
-    if (nom !== '') {
+        const prenom = req.body.prenom
+        const nom = req.body.nom
+        const nsc = req.body.nsc
+        const age = req.body.age
+        const sexe = req.body.sexe  //true = homme et false == femme
+        const birthDate = req.body.naissance
+        const birthPlace = req.body.lieu
+        const tel = req.body.tel
+        const adresse = req.body.adresse
+        const profession = req.body.profession
+        const mutuelle = req.body.mutuelle
+        const medecin = req.body.medecin
+        const antecedant = req.body.antecedant
+        const urgence = req.body.urgence
+        const sport = req.body.sport
+        const enfant = req.body.enfant
+        const service = req.body.service
 
         let validation = true
 
+        const verif_req_pseudo = "SELECT nsc FROM patient"
+
+        const verif_pseudo = await db.query({
+            text: verif_req_pseudo
+        })
+
+        for (i = 0; i < verif_pseudo.rowCount; i++) {
+
+            if (nsc == verif_pseudo.rows[i].nsc) {
+                validation = false
+            }
+
+        }
+
+        //Tester cette partie apres avoir fait un service ...
+
+        let serviceId = -1
+
+        const verif_req_service = "SELECT id,nom FROM " + service
+
+        const verif_service = await db.query({
+            text: verif_req_service
+        })
+
+        for (i = 0; i < verif_service.rowCount; i++) {
+
+            if (service == verif_service.rows[i].nom) {
+                serviceId = verif_service.rows[i].id
+            }
+
+        }
+
+        if (serviceId == -1) {
+            validation = false
+        }
+
         let medecinId = -1
 
-        const verif_req_med = "SELECT id,pseudo FROM medecin"
+        const verif_req_med = "SELECT id,nom FROM medecin"
 
         const verif_med = await db.query({
             text: verif_req_med
@@ -511,7 +549,7 @@ router.post(('/add/service'), async (req, res) => {
 
         for (i = 0; i < verif_med.rowCount; i++) {
 
-            if (chef == verif_med.rows[i].pseudo) {
+            if (medecin == verif_med.rows[i].nom) {
                 medecinId = verif_med.rows[i].id
             }
 
@@ -525,11 +563,12 @@ router.post(('/add/service'), async (req, res) => {
 
         if (validation === true) {
 
-            const requete = "INSERT INTO service(nom,capacite,occupe,chef) values($1,$2,$3,$4) RETURNING *"
+            const requete = "INSERT INTO patient(nom,prenom,nsc,age,sexe,lieu,tel,adresse,profession,mutuelle,antecedent,sport,medecin,service,enfant,urgence,naissance) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *"
 
+            //const requete = "INSERT INTO patient(nom,prénom,nsc,age,sexe) VALUES($1,$2,$3,$4,$5)"
             const result = await db.query({
                 text: requete,
-                values: [nom, capacite, occupation, medecinId]
+                values: [nom, prenom, nsc, age, sexe, birthPlace, tel, adresse, profession, mutuelle, antecedant, sport, medecinId, serviceId, enfant, urgence, birthDate]
             })
 
             if (result.rowCount == 0) {
@@ -540,316 +579,153 @@ router.post(('/add/service'), async (req, res) => {
 
         } else {
 
-            res.status(404).json({ message: 'Not found. Medecin inconnu.' })
+            res.status(400).json({ message: 'Not found.' })
 
         }
 
     } else {
 
-        res.status(400).json({ message: 'Bad request' })
+        res.status(400).json({ message: 'Bad request. pseudo deja pris.' })
 
     }
 
+})
+
+router.post(('/add/service'), async (req, res) => {
+
+    if (req.session.info.role === 'administratif' && (req.session.info.poste === 'Directeur' || req.session.info.poste === 'Gestionnaire de la BDD')) {
+
+        const nom = req.body.nom
+        const capacite = req.body.capacite
+        const occupation = req.body.occupe
+        const chef = req.body.chef
+
+        if (nom !== '') {
+
+            let validation = true
+
+            let medecinId = -1
+
+            const verif_req_med = "SELECT id,pseudo FROM medecin"
+
+            const verif_med = await db.query({
+                text: verif_req_med
+            })
+
+            for (i = 0; i < verif_med.rowCount; i++) {
+
+                if (chef == verif_med.rows[i].pseudo) {
+                    medecinId = verif_med.rows[i].id
+                }
+
+            }
+
+            if (medecinId == -1) {
+
+                validation = false
+
+            }
+
+            if (validation === true) {
+
+                const requete = "INSERT INTO service(nom,capacite,occupe,chef) values($1,$2,$3,$4) RETURNING *"
+
+                const result = await db.query({
+                    text: requete,
+                    values: [nom, capacite, occupation, medecinId]
+                })
+
+                if (result.rowCount == 0) {
+                    res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer.' })
+                } else {
+                    res.json(result.rows)
+                }
+
+            } else {
+
+                res.status(404).json({ message: 'Not found. Medecin inconnu.' })
+
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
 
 })
 
 
 router.post(('/add/maladie'), async (req, res) => {
 
-    const nom = req.body.nom
-    const cause = req.body.cause
-    const diagnostic = req.body.diagnostic
-    const patient = req.body.patient
-    const actuel = req.body.actuel
-    const hospitalisation = req.body.hospitalisation
+    if (req.session.info.role == 'medecin') {
 
-    let validation = true
+        const nom = req.body.nom
+        const cause = req.body.cause
+        const diagnostic = req.body.diagnostic
+        const patient = req.body.patient
+        const actuel = req.body.actuel
+        const hospitalisation = req.body.hospitalisation
 
-    if (validation === true) {
+        let validation = true
 
-        const requete = "INSERT INTO maladie(nom,cause,diagnostic,patient,actuel,hospitalisation) values($1,$2,$3,$4,$5,$6) RETURNING *"
+        if (validation === true) {
 
-        const result = await db.query({
-            text: requete,
-            values: [nom, cause, diagnostic, patient, actuel, hospitalisation]
-        })
+            const requete = "INSERT INTO maladie(nom,cause,diagnostic,patient,actuel,hospitalisation) values($1,$2,$3,$4,$5,$6) RETURNING *"
 
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            const result = await db.query({
+                text: requete,
+                values: [nom, cause, diagnostic, patient, actuel, hospitalisation]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
         } else {
-            res.json(result.rows)
+
+            res.status(40).json({ message: 'Bad request.' })
+
         }
 
     } else {
 
-        res.status(40).json({ message: 'Bad request.' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
-
-
 
 })
 
 router.post(('/add/symptome'), async (req, res) => {
 
-    const nom = req.body.nom
-    const intensite = req.body.intensite
-    const description = req.body.descritption
-    const maladie = req.body.maladie
+    if (req.session.info.role == 'medecin') {
 
-    let validation = true
+        const nom = req.body.nom
+        const intensite = req.body.intensite
+        const description = req.body.descritption
+        const maladie = req.body.maladie
 
-    if (validation === true) {
-
-        const requete = "INSERT INTO symptome(nom,intensite,description,maladie) values($1,$2,$3,$4) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [nom, intensite, description, maladie]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-})
-
-router.post(('/add/allergie'), async (req, res) => {
-
-    const nom = req.body.nom
-    const examen = req.body.examen
-    const patient = req.body.patient
-
-    let validation = true
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO allergie(nom,examen,patient) values($1,$2,$3) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [nom, examen, patient]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-})
-
-router.post(('/add/traitement'), async (req, res) => {
-
-    // Faire les traitements
-
-    const nom = req.body.nom
-    const posologie = req.body.posologie
-    const duree = req.body.duree
-    const maladie = req.body.maladie
-    const allergie = req.body.allergie
-
-    let validation = true
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO traitement(nom,posologie,duree,maladie,allergie) values($1,$2,$3,$4,$5) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [nom, posologie, duree, maladie, allergie]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-})
-
-router.post(('/add/examen'), async (req, res) => {
-
-    const nom = req.body.nom
-    const resulat = req.body.resulat
-    const date = req.body.date
-    const consultation = req.body.consultation
-    const patient = req.body.patient
-    const hospitalisation = req.body.hospitalisation
-    const maladie = req.body.maladie
-
-    let validation = true
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO examen(nom,resultat,date,consultation,maladie,patient,hospitalisation) values($1,$2,$3,$4,$5,$6,$7) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [nom, resulat, date, consultation, maladie, patient, hospitalisation]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-})
-
-router.post(('/add/consultation'), async (req, res) => {
-
-    const nom = req.body.nom
-    const date = req.body.date
-    const patient = req.body.patient
-    const medecin = req.body.medecin
-    const commentaire = req.body.commentaire
-
-
-    let validation = true
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO consultation(nom,date,patient,medecin,commentaire) values($1,$2,$3,$4,$5) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [nom, date, patient, medecin, commentaire]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-})
-
-router.post(('/add/hospitalisation'), async (req, res) => {
-
-    const debut = req.body.debut
-    const fin = req.body.fin
-    const resume = req.body.resume
-    const patient = req.body.patient
-    const medecin = req.body.medecin
-
-
-    let validation = true
-
-    if (validation === true) {
-
-        const requete = "INSERT INTO hospitalisation(debut,fin,resume,patient,medecin) values($1,$2,$3,$4,$5) RETURNING *"
-
-        const result = await db.query({
-            text: requete,
-            values: [debut, fin, resume, patient, medecin]
-        })
-
-        if (result.rowCount == 0) {
-            res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
-        } else {
-            res.json(result.rows)
-        }
-
-    } else {
-
-        res.status(400).json({ message: 'Bad request.' })
-
-    }
-
-
-})
-
-router.put(('/update/:table'), async (req, res) => {
-
-    const table = req.params.table
-    const champ = req.body.champ
-    const id = req.body.id
-    const valeur = req.body.valeur
-
-    let validation = false
-
-    if (table == 'index') {
-        validation = true
-    }
-
-    if (validation === false) {
-
-        const verif_req = "SELECT * FROM index"
-
-        const verif = await db.query({
-            text: verif_req
-        })
-
-        for (i = 0; i < verif.rowCount; i++) {
-
-            if (table == verif.rows[i].nom) {
-                validation = true
-            }
-
-        }
-
-    }
-
-    if (validation === true) {
-
-        const verif_req = "SELECT " + champ + " FROM " + table
-
-        const verif = await db.query({
-            text: verif_req
-        })
-
-        if (verif_req.rowCount == 0) {
-            validation = false
-        }
-
-        if (champ == 'mdp' || champ == 'id') {
-            validation = false
-        }
+        let validation = true
 
         if (validation === true) {
 
-            const requete = "UPDATE " + table + " SET " + champ + "=$1 WHERE id=$2 RETURNING *"
+            const requete = "INSERT INTO symptome(nom,intensite,description,maladie) values($1,$2,$3,$4) RETURNING *"
 
             const result = await db.query({
                 text: requete,
-                values: [valeur, id]
+                values: [nom, intensite, description, maladie]
             })
 
             if (result.rowCount == 0) {
-                res.status(400).json({ message: 'Erreur lors de la mise a jour de la base de donnes.' })
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
             } else {
                 res.json(result.rows)
             }
@@ -857,72 +733,375 @@ router.put(('/update/:table'), async (req, res) => {
         } else {
 
             res.status(400).json({ message: 'Bad request.' })
-    
+
         }
 
     } else {
 
-        res.status(400).json({ message: 'Bad request.' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.post(('/add/allergie'), async (req, res) => {
+
+    if (req.session.info.role == 'medecin') {
+
+        const nom = req.body.nom
+        const examen = req.body.examen
+        const patient = req.body.patient
+
+        let validation = true
+
+        if (validation === true) {
+
+            const requete = "INSERT INTO allergie(nom,examen,patient) values($1,$2,$3) RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [nom, examen, patient]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.post(('/add/traitement'), async (req, res) => {
+
+    if (req.session.info.role == 'medecin') {
+
+        const nom = req.body.nom
+        const posologie = req.body.posologie
+        const duree = req.body.duree
+        const maladie = req.body.maladie
+        const allergie = req.body.allergie
+
+        let validation = true
+
+        if (validation === true) {
+
+            const requete = "INSERT INTO traitement(nom,posologie,duree,maladie,allergie) values($1,$2,$3,$4,$5) RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [nom, posologie, duree, maladie, allergie]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.post(('/add/examen'), async (req, res) => {
+
+    if (req.session.info.role == 'medecin') {
+
+        const nom = req.body.nom
+        const resulat = req.body.resulat
+        const date = req.body.date
+        const consultation = req.body.consultation
+        const patient = req.body.patient
+        const hospitalisation = req.body.hospitalisation
+        const maladie = req.body.maladie
+
+        let validation = true
+
+        if (validation === true) {
+
+            const requete = "INSERT INTO examen(nom,resultat,date,consultation,maladie,patient,hospitalisation) values($1,$2,$3,$4,$5,$6,$7) RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [nom, resulat, date, consultation, maladie, patient, hospitalisation]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.post(('/add/consultation'), async (req, res) => {
+
+    if (req.session.info.role == 'medecin') {
+
+        const nom = req.body.nom
+        const date = req.body.date
+        const patient = req.body.patient
+        const medecin = req.body.medecin
+        const commentaire = req.body.commentaire
+
+
+        let validation = true
+
+        if (validation === true) {
+
+            const requete = "INSERT INTO consultation(nom,date,patient,medecin,commentaire) values($1,$2,$3,$4,$5) RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [nom, date, patient, medecin, commentaire]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.post(('/add/hospitalisation'), async (req, res) => {
+
+    if (req.session.info.role == 'medecin') {
+
+        const debut = req.body.debut
+        const fin = req.body.fin
+        const resume = req.body.resume
+        const patient = req.body.patient
+        const medecin = req.body.medecin
+
+
+        let validation = true
+
+        if (validation === true) {
+
+            const requete = "INSERT INTO hospitalisation(debut,fin,resume,patient,medecin) values($1,$2,$3,$4,$5) RETURNING *"
+
+            const result = await db.query({
+                text: requete,
+                values: [debut, fin, resume, patient, medecin]
+            })
+
+            if (result.rowCount == 0) {
+                res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer. Redemmarer la base de données.' })
+            } else {
+                res.json(result.rows)
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+
+    }
+
+})
+
+router.put(('/update/:table'), async (req, res) => {
+
+    if (req.session.info.role === 'medecin' || req.session.info.role === 'administratif') {
+
+        const table = req.params.table
+        const champ = req.body.champ
+        const id = req.body.id
+        const valeur = req.body.valeur
+
+        let validation = false
+
+        if (table == 'index') {
+            validation = true
+        }
+
+        if (validation === false) {
+
+            const verif_req = "SELECT * FROM index"
+
+            const verif = await db.query({
+                text: verif_req
+            })
+
+            for (i = 0; i < verif.rowCount; i++) {
+
+                if (table == verif.rows[i].nom) {
+                    validation = true
+                }
+
+            }
+
+        }
+
+        if (validation === true) {
+
+            const verif_req = "SELECT " + champ + " FROM " + table
+
+            const verif = await db.query({
+                text: verif_req
+            })
+
+            if (verif_req.rowCount == 0) {
+                validation = false
+            }
+
+            if (champ == 'mdp' || champ == 'id') {
+                validation = false
+            }
+
+            if (validation === true) {
+
+                const requete = "UPDATE " + table + " SET " + champ + "=$1 WHERE id=$2 RETURNING *"
+
+                const result = await db.query({
+                    text: requete,
+                    values: [valeur, id]
+                })
+
+                if (result.rowCount == 0) {
+                    res.status(400).json({ message: 'Erreur lors de la mise a jour de la base de donnes.' })
+                } else {
+                    res.json(result.rows)
+                }
+
+            } else {
+
+                res.status(400).json({ message: 'Bad request.' })
+
+            }
+
+        } else {
+
+            res.status(400).json({ message: 'Bad request.' })
+
+        }
+
+    } else {
+
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
 
 
 })
 
-router.delete(('/delete/:table'), async (req,res) => {
+router.delete(('/delete/:table'), async (req, res) => {
 
-    const table = req.params.table
-    const id = req.body.id
+    if (req.session.info.role === 'medecin' || req.session.info.role === 'administratif') {
 
-    let exist
+        const table = req.params.table
+        const id = req.body.id
 
-    if (table == 'index') {
-        exist = true
-    } else {
-        exist = false
-    }
+        let exist
 
-    if (exist === false) {
+        if (table == 'index' && req.session.info.role === 'administratif') {
 
-        const verif_req = "SELECT * FROM index"
-
-        const verif = await db.query({
-            text: verif_req
-        })
-
-        for (i = 0; i < verif.rowCount; i++) {
-
-            if (table == verif.rows[i].nom) {
+            if (req.session.info.poste === 'Gestionnaire de la BDD') {
                 exist = true
+            } else {
+                exist = false
+            }
+        } else {
+            exist = false
+        }
+
+        if (exist === false) {
+
+            const verif_req = "SELECT * FROM index"
+
+            const verif = await db.query({
+                text: verif_req
+            })
+
+            for (i = 0; i < verif.rowCount; i++) {
+
+                if (table == verif.rows[i].nom) {
+                    exist = true
+                }
+
             }
 
         }
 
-    }
+        if (exist === true) {
 
-    if (exist === true) {
+            let requete
 
-        let requete
+            requete = "DELETE FROM " + table + " WHERE id=$1"
 
-        requete = "DELETE FROM " + table + " WHERE id=$1"
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
 
-       const result = await db.query({
-            text: requete,
-            values: [id]
-        })
+            if (result.rowCount == 1) {
+                res.json({ message: ' Element ' + id + ' de la table ' + table + ' supprimé.' })
+            } else {
+                res.status(400).json({ message: 'Erreur lors de la suppression.' })
+            }
 
-        if(result.rowCount == 1){
-            res.json({ message: ' Element ' + id + ' de la table '  + table + ' supprimé.'})
-        }else{
-            res.status(400).json({ message: 'Erreur lors de la suppression.'})
+        } else {
+
+            res.status(404).json({ message: 'Table not found' })
+
         }
 
     } else {
 
-        res.status(404).json({ message: 'Table not found' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
-
 
 })
 
