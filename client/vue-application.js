@@ -19,80 +19,39 @@ var app = new Vue({
   router,
   el: '#app',
   data: {
-    articles: [],
-    panier: {
-      createdAt: null,
-      updatedAt: null,
-      articles: []
+    patients: [],
+    account: {
+      constructor() {
+        this.loggedAt
+        this.nom
+        this.prenom
+        this.role
+        this.service
+        this.poste
     }
+    },
   },
   async mounted() {
-    const res = await axios.get('/api/articles')
-    this.articles = res.data
-    const res2 = await axios.get('/api/panier')
-    this.panier = res2.data
+
   },
   methods: {
-    async addArticle(article) {
-      const res = await axios.post('/api/article', article)
-      this.articles.push(res.data)
+    async loadPatient() {
+      const res = await axios.get('/api/table/patient')
+      this.patients = res.data
+      console.log(this.patients)
     },
-    async updateArticle(newArticle) {
-      await axios.put('/api/article/' + newArticle.id, newArticle)
-      const article = this.articles.find(a => a.id === newArticle.id)
-      article.name = newArticle.name
-      article.description = newArticle.description
-      article.image = newArticle.image
-      article.price = newArticle.price
-    },
-    async deleteArticle(articleId) {
-      await axios.delete('/api/article/' + articleId)
-      const index = this.articles.findIndex(a => a.id === articleId)
-      this.articles.splice(index, 1)
-    },
-    async addToPanier(articleId) {
-      const res = await axios.post('/api/panier', { id: articleId, quantity: 1 })
-      this.panier.articles.push(res.data)
-    },
-    async removeFromPanier(articleId) {
-      const res = await axios.delete('/api/panier/' + articleId)
-      const index = this.panier.articles.findIndex(a => a.articleId === articleId)
-      this.panier.articles.splice(index, 1)
-    },
-    async augmenterQ(articleId) {
-      const index = this.panier.articles.findIndex(a => a.articleId === articleId)
-      let quantity = this.panier.articles[index].number + 1
-      const res = await axios.put('/api/panier/' + articleId, { quantity: quantity })
-      this.panier.articles[index].number = quantity
-    },
-    async reduireQ(articleId) {
-      const index = this.panier.articles.findIndex(a => a.articleId === articleId)
-      let quantity = this.panier.articles[index].number - 1
-      if (quantity <= 0) { return }
-      const res = await axios.put('/api/panier/' + articleId, { quantity: quantity })
-      this.panier.articles[index].number = quantity
-    },
-    async createUsers(newEmail, newPassword) {
-      const res = await axios.post('/api/register', { email: newEmail, password: newPassword })
-    },
-    async logIn(email, password) {
-  
-      try {
+    async logIn(_pseudo, _mdp) {
 
-        const response = await axios.get('/api/me')
-        console.log(response)
-        alert('Vous êtes deja connecté')
-        return
-
-      } catch {
-
-        const res = await axios.post('/api/login', { email: email, password: password })
-        if(res.status == 200){
-          alert("Vous êtes connecté.")
-        }
-
+      const res = await axios.post('/api/login/administratif', { pseudo: _pseudo, mdp: _mdp })
+      if (res.status == 200) {
+        alert("Vous êtes connecté.")
+        this.account.loggedAt = res.data.loggedAt
+        this.account.nom = res.data.nom
+        this.account.prenom = res.data.prenom
+        this.account.role = res.data.role
+        this.account.poste = res.data.poste
+        console.log(this.account)
       }
-
     }
   }
 })

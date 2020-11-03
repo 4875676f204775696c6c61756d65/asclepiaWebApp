@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title>Mon magasin en ligne 100% bons plans</title>
+  <title>Asclepia</title>
   <!-- Load Vue followed by Vue Router -->
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/http-vue-loader/src/httpVueLoader.js"></script>
@@ -22,7 +22,7 @@
     <header>
 
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">À la bonne franquette</a>
+        <a class="navbar-brand" href="#">Asclepia</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
           aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -30,7 +30,7 @@
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
             <router-link class="nav-item nav-link" to='/'>Accueil</router-link>
-            <router-link class="nav-item nav-link" to='/panier'>Panier</router-link>
+            <router-link class="nav-item nav-link" to='/panier'>Patients</router-link>
             <router-link class="nav-item nav-link" to='/register'>S'inscrire</router-link>
             <router-link class="nav-item nav-link" to='/login'>S'identifier</router-link>
           </div>
@@ -39,9 +39,7 @@
     </header>
 
     <main style="margin-top: 2em;">
-      <router-view :articles="articles" :panier="panier" @add-article="addArticle" @delete-article="deleteArticle"
-        @update-article="updateArticle" @add-to-panier="addToPanier" @remove-from-panier="removeFromPanier"
-        @reduire-quantity="reduireQ" @augmenter-quantity="augmenterQ" @create-users="createUsers" @log-in="logIn">
+      <router-view :patient="patients" @load-patient="loadPatient" @log-in="logIn">
       </router-view>
     </main>
 

@@ -5,6 +5,7 @@ const router = express.Router()
 
 const bcrypt = require('bcrypt')
 const { Client } = require('pg')
+const session = require('express-session')
 
 class Info {
     constructor() {
@@ -56,7 +57,7 @@ router.post(('/login/:role'), async (req, res) => {
         validation = false
     }
 
-    if (typeof req.session.info == undefined && validation == true) {
+    if (validation == true && req.session.info == undefined) {
 
         const requete = "SELECT * FROM " + table + " WHERE pseudo=$1"
 
@@ -73,7 +74,7 @@ router.post(('/login/:role'), async (req, res) => {
 
             req.session.userId = result.rows[0].id
             req.session.info.nom = result.rows[0].nom
-            req.session.info.prenom = result.rows[0].prenom
+            req.session.info.prenom = result.rows[0].prénom
             req.session.info.role = table
 
             if (table == 'medecin') {
@@ -82,7 +83,7 @@ router.post(('/login/:role'), async (req, res) => {
                 req.session.info.poste = result.rows[0].poste
             }
 
-            res.json({ message: 'Vous etes bien logger' })
+            res.json(req.session.info)
 
         } else {
 
@@ -92,7 +93,7 @@ router.post(('/login/:role'), async (req, res) => {
 
     } else {
 
-        res.status(400).json({ message: 'Vous etes deja logger' })
+      res.status(400).json({ message: 'Vous etes deja logger' })
 
     }
 
