@@ -5,7 +5,6 @@ const router = express.Router()
 
 const bcrypt = require('bcrypt')
 const { Client } = require('pg')
-const session = require('express-session')
 
 class Info {
     constructor() {
@@ -31,15 +30,18 @@ db.connect()
 
 router.use((req, res, next) => {
 
-    next()
+    if(typeof req.session.indo == 'undefined' && (req.path != '/login/medecin/' && req.path != '/login/administratif/' && req.path != '/register/medecin/' && req.path != '/register/administratif/')){
+
+        res.json({ message: 'Acces non permis. Veuillez vous authentifier ou vous inscrire pour acceder a l\'API' })
+    
+    }else{
+
+        next()
+
+    }
 
 })
 
-router.get('/test', (req, res) => {
-
-    res.json({ message: 'hola pepito' })
-
-})
 
 router.post(('/login/:role'), async (req, res) => {
 
@@ -57,7 +59,7 @@ router.post(('/login/:role'), async (req, res) => {
         validation = false
     }
 
-    if (validation == true && req.session.info == undefined) {
+    if (typeof req.session.info == undefined && validation == true) {
 
         const requete = "SELECT * FROM " + table + " WHERE pseudo=$1"
 
@@ -74,7 +76,7 @@ router.post(('/login/:role'), async (req, res) => {
 
             req.session.userId = result.rows[0].id
             req.session.info.nom = result.rows[0].nom
-            req.session.info.prenom = result.rows[0].prénom
+            req.session.info.prenom = result.rows[0].prenom
             req.session.info.role = table
 
             if (table == 'medecin') {
@@ -83,7 +85,7 @@ router.post(('/login/:role'), async (req, res) => {
                 req.session.info.poste = result.rows[0].poste
             }
 
-            res.json(req.session.info)
+            res.json({ message: 'Vous etes bien logger' })
 
         } else {
 
@@ -93,7 +95,7 @@ router.post(('/login/:role'), async (req, res) => {
 
     } else {
 
-      res.status(400).json({ message: 'Vous etes deja logger' })
+        res.status(400).json({ message: 'Vous etes deja logger' })
 
     }
 
@@ -101,72 +103,80 @@ router.post(('/login/:role'), async (req, res) => {
 
 router.get('/table/:nom', async (req, res) => {
 
-    const table = req.params.nom
+    if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {
 
-    let exist
+        const table = req.params.nom
 
-    if (table == 'index') {
-        exist = true
-    } else {
-        exist = false
-    }
+        let exist
 
-    if (exist === false) {
+        if (table == 'index') {
+            exist = true
+        } else {
+            exist = false
+        }
 
-        const verif_req = "SELECT * FROM index"
+        if (exist === false) {
 
-        const verif = await db.query({
-            text: verif_req
-        })
+            const verif_req = "SELECT * FROM index"
 
-        for (i = 0; i < verif.rowCount; i++) {
+            const verif = await db.query({
+                text: verif_req
+            })
 
-            if (table == verif.rows[i].nom) {
-                exist = true
+            for (i = 0; i < verif.rowCount; i++) {
+
+                if (table == verif.rows[i].nom) {
+                    exist = true
+                }
+
             }
 
         }
 
-    }
+        if (exist === true) {
 
-    if (exist === true) {
+            let requete
 
-        let requete
+            if (table == 'medecin') {
 
-        if (table == 'medecin') {
+                requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table
 
-            requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM " + table
+            } else if (table == 'administratif') {
 
-        } else if (table == 'administratif') {
+                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table
 
-            requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table
+            } else {
+
+                requete = "SELECT * FROM " + table
+
+            }
+
+
+            const result = await db.query({
+                text: requete
+            })
+
+            if (result.rowCount == 0) {
+                res.json({ message: 'Empty' })
+            } else {
+                res.json(result.rows)
+            }
 
         } else {
 
-            requete = "SELECT * FROM " + table
+            res.status(404).json({ message: 'Table not found' })
 
-        }
-
-
-        const result = await db.query({
-            text: requete
-        })
-
-        if (result.rowCount == 0) {
-            res.json({ message: 'Empty' })
-        } else {
-            res.json(result.rows)
         }
 
     } else {
 
-        res.status(404).json({ message: 'Table not found' })
+        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
 
 })
 
-router.get('/get/:table', async (req, res) => {
+router.get('/get/one/:table', async (req, res) => {
 
     if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {
 
@@ -201,7 +211,7 @@ router.get('/get/:table', async (req, res) => {
         }
 
         if (champ == 'mdp' || champ == '*') {
-            res.status(401).json({ message: 'C\'est mal de chercher à hacker les api.' })
+            res.status(401).json({ message: 'C\'est mal de chercher à hacker mon api.' })
         }
 
         if (exist === true) {
