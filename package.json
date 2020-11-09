@@ -13,6 +13,8 @@
     "express-session": "^1.17.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
-    "pg": "^8.4.1"
+    "pg": "^8.4.1",
+    "v-calendar": "^2.0.2",
+    "vue-cal": "^3.8.4"
   }
 }

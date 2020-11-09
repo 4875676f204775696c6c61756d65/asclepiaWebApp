@@ -30,10 +30,10 @@ db.connect()
 
 router.use((req, res, next) => {
 
-    if(typeof req.session.indo == 'undefined' && (req.path != '/login/medecin/' && req.path != '/login/administratif/' && req.path != '/register/medecin/' && req.path != '/register/administratif/')){
+    if(typeof req.session.userId == 'undefined' && req.path != '/whoiam' && req.path != '/login/medecin' && req.path != '/login/administratif' && req.path != '/register/medecin' && req.path != '/register/administratif'){
 
-        res.json({ message: 'Acces non permis. Veuillez vous authentifier ou vous inscrire pour acceder a l\'API' })
-    
+        res.status(401).json({ message: 'Acces non permis. Veuillez vous authentifier ou vous inscrire pour acceder a l\'API' })
+
     }else{
 
         next()
@@ -42,6 +42,27 @@ router.use((req, res, next) => {
 
 })
 
+router.post(('/end'), (req,res) => {
+
+    req.session.destroy()
+
+    res.json({ message: 'See you '})
+
+})
+
+router.get(('/whoiam'), (req,res) => {
+
+    if(typeof req.session.userId == 'undefined'){
+        
+        res.json({ message: 'Pas de session active' })
+        
+    }else{
+
+        res.json(req.session.info)
+
+    }
+
+})
 
 router.post(('/login/:role'), async (req, res) => {
 
@@ -59,7 +80,7 @@ router.post(('/login/:role'), async (req, res) => {
         validation = false
     }
 
-    if (typeof req.session.info == undefined && validation == true) {
+    if (typeof req.session.info == 'undefined' && validation == true) {
 
         const requete = "SELECT * FROM " + table + " WHERE pseudo=$1"
 
@@ -76,7 +97,7 @@ router.post(('/login/:role'), async (req, res) => {
 
             req.session.userId = result.rows[0].id
             req.session.info.nom = result.rows[0].nom
-            req.session.info.prenom = result.rows[0].prenom
+            req.session.info.prenom = result.rows[0].prénom
             req.session.info.role = table
 
             if (table == 'medecin') {
@@ -85,7 +106,7 @@ router.post(('/login/:role'), async (req, res) => {
                 req.session.info.poste = result.rows[0].poste
             }
 
-            res.json({ message: 'Vous etes bien logger' })
+            res.json(req.session.info)
 
         } else {
 
@@ -101,9 +122,116 @@ router.post(('/login/:role'), async (req, res) => {
 
 })
 
+router.get(('/calendar/:type'), async (req,res) => {
+
+    if(req.session.role == 'medecin'){
+
+        const type = req.params.type
+        const id = req.session.userId
+
+        let events = []
+
+        if(type == 'all'){
+
+            const requete = "SELECT * FROM consultations WHERE medecin=$1"
+
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Consultation"
+                    }
+
+                }
+            }
+
+        }else if(type == 'consultation'){
+
+            const requete = "SELECT * FROM consultations WHERE medecin=$1"
+
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Consultation"
+                    }
+
+                }
+            }
+
+        }else if(type == 'examen'){
+
+            const requete = "SELECT * FROM examen WHERE medecin=$1"
+
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Consultation"
+                    }
+
+                }
+            }
+
+        }else if(type == 'reunion'){
+
+
+
+        }else if(type == 'hospitalisation'){
+
+
+
+        }else if(type == 'autres'){
+
+            res.json({ message: 'Rien pour l\'instant' })
+
+        }
+
+        res.json(events)
+
+    }else if(req.session.role == 'administratif'){
+
+
+
+    }else{
+
+        console.log('Erreur')
+        res.status(400).json({ message: 'Erreur de session' })
+
+    }
+
+})
+
 router.get('/table/:nom', async (req, res) => {
 
-    if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {
+    if (req.session.info.role == 'administratif' && req.session.info.poste == 'Gestionnaire de la BDD') {
 
         const table = req.params.nom
 
@@ -353,7 +481,7 @@ router.post(('/add/index'), async (req, res) => {
 
     } else {
 
-        res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
+        //res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
 

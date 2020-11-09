@@ -1,8 +1,10 @@
 <!doctype>
-<html lang="fr">
+<html lang="fr" class="h-100">
 
 <head>
   <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Asclepia</title>
   <!-- Load Vue followed by Vue Router -->
@@ -11,40 +13,54 @@
   <script src="https://cdn.jsdelivr.net/npm/vue-router/dist/vue-router.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+  <link rel="shortcut icon" type="image/png" href="icon/favicon.png" />
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue-cal"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-cal@1.62.1/dist/vuecal.css">
+
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+  <!-- Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> -->
 </head>
 
-<body>
+<body class="d-flex flex-column h-100">
   <div id="app">
+
     <header>
 
-      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background-color: darkcyan">
         <a class="navbar-brand" href="#">Asclepia</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-          aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
             <router-link class="nav-item nav-link" to='/'>Accueil</router-link>
-            <router-link class="nav-item nav-link" to='/panier'>Patients</router-link>
+            <router-link class="nav-item nav-link" to='/dashboard'>Tableau de bord</router-link>
+            <router-link class="nav-item nav-link" to='/patient'>Gerer</router-link>
+            <router-link class="nav-item nav-link" to='/calendar'>Calendrier</router-link>
             <router-link class="nav-item nav-link" to='/register'>S'inscrire</router-link>
             <router-link class="nav-item nav-link" to='/login'>S'identifier</router-link>
           </div>
         </div>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
       </nav>
     </header>
 
+
     <main style="margin-top: 2em;">
-      <router-view :patient="patients" @load-patient="loadPatient" @log-in="logIn">
+      <router-view :account="account" :patients="patients" @log-out="logOut" @load-patient="loadPatient"
+        @log-in="logIn">
       </router-view>
     </main>
 
   </div>
   <script src="/vue-application.js"></script>
+
 </body>
 
 </html>

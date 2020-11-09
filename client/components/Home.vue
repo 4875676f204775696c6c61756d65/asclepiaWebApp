@@ -1,36 +1,58 @@
 <template>
   <div>
-    <h1> Welcome on asclepia </h1>
+    <h1>Welcome on asclepia</h1>
 
-    <ul>
+    <div class="centrer" v-if="!isConnected()">
+      <input type="button" value="Se deconnecter" @click="logOut()" />
+    </div>
 
-      <li v-for="patient in patients" :key="patient.id"> Nom : {{ patient.nom }} {{ patient.prenom }} </li>
-
-    </ul>
-
+    <div id="statusInfo" class="centrer">
+      <div>Statut : {{ getStatus() }}</div>
+      <div v-if="!isConnected()">
+        Info : {{ account.nom }} {{ account.prenom }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 module.exports = {
   props: {
-    patient: { type: Array, default: [] }
+    patients: { type: Array, default: [] },
+    account: { type: Object }
   },
   data() {
-    return {
-      
-    };
+    return {};
   },
   methods: {
-    async loadPatient(){
-      this.$emit('load-patient')
+    async logOut() {
+      this.$emit("log-out");
+    },
+    isConnected() {
+      if (this.account.loggedAt != null) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+    getStatus() {
+      if (this.account.loggedAt != null) {
+        return "Connecté";
+      } else {
+        return "Non connecté";
+      }
     }
-  },
+  }
 };
 </script>
 
 <style scoped>
 
-/* Code css */
+.centrer{
+
+    text-align: center;
+  margin-top: 20%;
+
+}
 
 </style>
