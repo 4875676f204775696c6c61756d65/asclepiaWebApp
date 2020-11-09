@@ -1,5 +1,8 @@
 <template>
   <div>
+
+    <div class="sfc"></div>
+
     <h1>Welcome on asclepia</h1>
 
     <div class="centrer" v-if="!isConnected()">
@@ -53,6 +56,10 @@ module.exports = {
     text-align: center;
   margin-top: 20%;
 
+}
+
+.sfc {
+  margin-top: 60px;
 }
 
 </style>

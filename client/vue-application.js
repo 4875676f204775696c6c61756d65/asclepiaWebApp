@@ -23,6 +23,7 @@ var app = new Vue({
   el: '#app',
   data: {
     patients: [],
+    events: [],
     account: {
       loggedAt: null,
       nom: null,
@@ -44,6 +45,22 @@ var app = new Vue({
       this.account.poste = res.data.poste
     }else{
       console.log('Non logger')
+    }
+
+    if(this.account.loggedAt != null){
+
+      const calendar = await axios.get('api/calendar/all')
+
+      if(calendar.status == 200){
+
+        this.events = calendar.data
+
+      }else{
+
+        console.log('Erreur lors de la requete. Verifier la connection.')
+
+      }
+
     }
 
   },

@@ -113,40 +113,20 @@
 </template>
 
 <script>
+//const { mounted }=require("./Register.vue");
+
 module.exports = {
   components: { vuecal },
   props: {
     patients: { type: Array, default: [] },
-    account: { type: Object }
+    account: { type: Object },
+    events: { type: Array, default: [] }
   },
   data() {
     const month = new Date().getMonth();
     const year = new Date().getFullYear();
     return {
       selectedEvent: {},
-      events: [
-        {
-          start: "2020-11-8 20:00",
-          end: "2020-11-8 23:15",
-          title: "Need to go shopping",
-          content: "achat divers et varier",
-          class: "leisure",
-        },
-        {
-          start: "2020-11-10 10:00",
-          end: "2020-11-10 11:00",
-          title: "Golf with John",
-          content: "Go golf",
-          class: "sport"
-        },
-        {
-          start: "2020-11-22 12:20",
-          end: "2020-11-22 12:40",
-          title: "Dad's birthday!",
-          content: " birthday ",
-          class: "sport"
-        }
-      ]
     };
   },
   methods: {

@@ -1,6 +1,8 @@
 <template>
   <div>
 
+    <div class="sfc"></div>
+
     <div class="centrer" v-if="!isConnected()">
       
     </div>
@@ -57,4 +59,9 @@ module.exports = {
   text-align: center;
   margin-top: 20%;
 }
+
+.sfc {
+  margin-top: 60px;
+}
+
 </style>

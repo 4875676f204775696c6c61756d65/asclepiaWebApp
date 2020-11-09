@@ -1,5 +1,8 @@
 <template>
   <div>
+
+    <div class="sfc"></div>
+
     <h1> Mes patients </h1>
 
     <ul>
@@ -76,6 +79,10 @@ module.exports = {
 
   margin: 5px;
 
+}
+
+.sfc {
+  margin-top: 60px;
 }
 
 </style>

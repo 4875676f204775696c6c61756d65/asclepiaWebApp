@@ -124,7 +124,7 @@ router.post(('/login/:role'), async (req, res) => {
 
 router.get(('/calendar/:type'), async (req,res) => {
 
-    if(req.session.role == 'medecin'){
+    if(req.session.info.role == 'medecin'){
 
         const type = req.params.type
         const id = req.session.userId
@@ -133,9 +133,9 @@ router.get(('/calendar/:type'), async (req,res) => {
 
         if(type == 'all'){
 
-            const requete = "SELECT * FROM consultations WHERE medecin=$1"
+            let requete = "SELECT * FROM consultation WHERE medecin=$1"
 
-            const result = await db.query({
+            let result = await db.query({
                 text: requete,
                 values: [id]
             })
@@ -145,22 +145,100 @@ router.get(('/calendar/:type'), async (req,res) => {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Consultation"
                     }
+
+                    events.push(ajout)
+
+                }
+            }
+
+            requete = "SELECT * FROM examen WHERE médecin=$1"
+
+            result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Examen"
+                    }
+
+                    events.push(ajout)
+
+                }
+            }
+
+            requete = "SELECT * FROM hospitalisation WHERE medecin=$1"
+
+            result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].debut,
+                        end: result.rows[i].fin,
+                        title: result.rows[i].patient,
+                        content: result.rows[i].resume,
+                        class: "Hospitalisation"
+                    }
+
+                    const getNom = "SELECT nom,prenom FROM patient WHERE id=$1"
+
+                    const resultNom = await db.query({
+                        text: getNom,
+                        values: [ajout.title]
+                    })
+
+                    ajout.title = resultNom.rows[0].prenom + " " + resultNom.rows[0].nom
+
+                    events.push(ajout)
+
+                }
+            }
+
+            requete = "SELECT * FROM reunion"
+
+            result = await db.query({
+                text: requete
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].organisateur,
+                        class: "Reunion"
+                    }
+
+                    events.push(ajout)
 
                 }
             }
 
         }else if(type == 'consultation'){
 
-            const requete = "SELECT * FROM consultations WHERE medecin=$1"
+            const requete = "SELECT * FROM consultation WHERE medecin=$1"
 
             const result = await db.query({
                 text: requete,
-                values: [id]
             })
 
             if (result.rowCount != 0) {
@@ -168,18 +246,20 @@ router.get(('/calendar/:type'), async (req,res) => {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Consultation"
                     }
+
+                    events.push(ajout)
 
                 }
             }
 
         }else if(type == 'examen'){
 
-            const requete = "SELECT * FROM examen WHERE medecin=$1"
+            const requete = "SELECT * FROM examen WHERE médecin=$1"
 
             const result = await db.query({
                 text: requete,
@@ -191,22 +271,75 @@ router.get(('/calendar/:type'), async (req,res) => {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
-                        class: "Consultation"
+                        class: "Examen"
                     }
+
+                    events.push(ajout)
 
                 }
             }
 
         }else if(type == 'reunion'){
 
+            const requete = "SELECT * FROM reunion"
 
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].organisateur,
+                        class: "Reunion"
+                    }
+
+                    events.push(ajout)
+
+                }
+            }
 
         }else if(type == 'hospitalisation'){
 
+            const requete = "SELECT * FROM hospitalisation WHERE medecin=$1"
 
+            const result = await db.query({
+                text: requete,
+                values: [id]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].debut,
+                        end: result.rows[i].fin,
+                        title: result.rows[i].patient,
+                        content: result.rows[i].resume,
+                        class: "Hospitalisation"
+                    }
+
+                    const getNom = "SELECT nom,prenom FROM patient WHERE id=$1"
+
+                    const resultNom = await db.query({
+                        text: getNom,
+                        values: [ajout.title]
+                    })
+
+                    ajout.title = resultNom.rows[0].prenom + " " + resultNom.rows[0].nom
+
+                    events.push(ajout)
+
+                }
+            }
 
         }else if(type == 'autres'){
 
@@ -216,9 +349,37 @@ router.get(('/calendar/:type'), async (req,res) => {
 
         res.json(events)
 
-    }else if(req.session.role == 'administratif'){
+    }else if(req.session.info.role == 'administratif'){
 
+        const type = req.params.type
+        const id = req.session.userId
 
+        let events = []
+
+        const requete = "SELECT * FROM reunion"
+
+        const result = await db.query({
+            text: requete,
+            values: [id]
+        })
+
+        if (result.rowCount != 0) {
+            for(i = 0; i < result.rowCount ; i++){
+
+                let ajout = {
+                    start: result.rows[i].date + " " + result.rows[i].heure,
+                    end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                    title: result.rows[i].nom,
+                    content: result.rows[i].commentaire,
+                    class: "Reunion"
+                }
+
+                events.push(ajout)
+
+            }
+        }
+
+        res.json(events)
 
     }else{
 
@@ -800,7 +961,6 @@ router.post(('/add/service'), async (req, res) => {
 
 })
 
-
 router.post(('/add/maladie'), async (req, res) => {
 
     if (req.session.info.role == 'medecin') {
@@ -1243,5 +1403,28 @@ router.delete(('/delete/:table'), async (req, res) => {
     }
 
 })
+
+// fonction support :
+
+function addTime(depart, ajout){
+
+    let index = depart.search(':')
+
+    let heure = depart.substring(0,index)
+
+    let minute = depart.substring(index+1)
+
+    let minuteNew = parseInt(minute) + ajout
+
+    if(minuteNew >= 60){
+        minuteNew = minuteNew - 60
+        heure = parseInt(heure) + 1
+    }
+
+    let result = heure.toString(10) + ":" + minuteNew.toString(10)
+
+    return result
+
+}
 
 module.exports = router

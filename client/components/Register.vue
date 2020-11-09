@@ -1,6 +1,8 @@
 <template>
   <div>
       
+    <div class="sfc"></div>
+
     <div v-if="isConnected()" class="center">
       <h2>Enregistrer vous !</h2>
       <input type="text" placeholder="Pseudo" v-model="email" />
@@ -67,4 +69,9 @@ module.exports = {
   text-align: center;
   margin-top: 20%;
 }
+
+.sfc {
+  margin-top: 60px;
+}
+
 </style>
