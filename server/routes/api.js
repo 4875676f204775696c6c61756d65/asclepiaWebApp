@@ -128,6 +128,7 @@ router.get(('/calendar/:type'), async (req,res) => {
 
         const type = req.params.type
         const id = req.session.userId
+        const patient = req.session.patientId
 
         let events = []
 
@@ -344,6 +345,86 @@ router.get(('/calendar/:type'), async (req,res) => {
         }else if(type == 'autres'){
 
             res.json({ message: 'Rien pour l\'instant' })
+
+        }else if(type == 'patient'){
+
+            let requete = "SELECT * FROM consultation WHERE medecin=$1 AND patient=$2"
+
+            let result = await db.query({
+                text: requete,
+                values: [id,patient]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Consultation"
+                    }
+
+                    events.push(ajout)
+
+                }
+            }
+
+            requete = "SELECT * FROM examen WHERE médecin=$1 AND patient=$2"
+
+            result = await db.query({
+                text: requete,
+                values: [id,patient]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].date + " " + result.rows[i].heure,
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
+                        title: result.rows[i].nom,
+                        content: result.rows[i].commentaire,
+                        class: "Examen"
+                    }
+
+                    events.push(ajout)
+
+                }
+            }
+
+            requete = "SELECT * FROM hospitalisation WHERE medecin=$1 AND patient=$2"
+
+            result = await db.query({
+                text: requete,
+                values: [id,patient]
+            })
+
+            if (result.rowCount != 0) {
+                for(i = 0; i < result.rowCount ; i++){
+
+                    let ajout = {
+                        start: result.rows[i].debut,
+                        end: result.rows[i].fin,
+                        title: result.rows[i].patient,
+                        content: result.rows[i].resume,
+                        class: "Hospitalisation"
+                    }
+
+                    const getNom = "SELECT nom,prenom FROM patient WHERE id=$1"
+
+                    const resultNom = await db.query({
+                        text: getNom,
+                        values: [ajout.title]
+                    })
+
+                    ajout.title = resultNom.rows[0].prenom + " " + resultNom.rows[0].nom
+
+                    events.push(ajout)
+
+                }
+            }
 
         }
 

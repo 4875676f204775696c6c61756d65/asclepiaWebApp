@@ -3,7 +3,38 @@
     <div class="sfc"></div>
 
     <div class="centrer" v-if="!isConnected()">
-      <div class="container-fluid">
+
+      <div id="menuShort">
+      
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-info">Tous</button>
+          <button type="button" class="btn btn-outline-info">Consultations</button>
+          <button type="button" class="btn btn-outline-info">Examens</button>
+        </div>
+
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-info">Hospitalisations</button>
+          <button type="button" class="btn btn-outline-info">Reunions</button>
+          <button type="button" class="btn btn-outline-info">Autres</button>
+        </div>
+        <!--
+        <div>
+          <div class="btn-group" role="group">
+            <button id="btnGroupDrop1" type="button" class="btn btn-outline-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Vu par patient
+            </button>
+            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+              <a class="dropdown-item" href="#">Patient 1</a>
+              <a class="dropdown-item" href="#">Patient 2</a>
+            </div>
+          </div>
+        </div>
+        Necessite popper.js => Chiant a voir si on rajoute
+        --> 
+
+      </div>
+
+      <div id="menuLong" class="container-fluid">
         <div class="row">
           <nav class="col-md-2 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
@@ -93,27 +124,17 @@
         events-on-month-view="short"
       >
         </vuecal>
+
     </div>
 
     <div v-else>
       Connecter vous pour pour acceder a votre calendirer personnel. Si vous
       n'avez pas de compte inscrivez vous.
     </div>
-
-    <div id="statusInfo" class="centrer">
-      <div>Statut : {{ getStatus() }}</div>
-      <div v-if="!isConnected()">
-        Info : {{ account.nom }} {{ account.prenom }}
-        <div>
-          <input type="button" value="Se deconnecter" @click="logOut()" />
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
-//const { mounted }=require("./Register.vue");
 
 module.exports = {
   components: { vuecal },
@@ -149,7 +170,7 @@ module.exports = {
     },
     onEventClick (event, e) {
       this.selectedEvent = event
-
+      console.log(this.selectedEvent.title)
       // affichage ddes details en dessous
     }
   }
@@ -157,6 +178,38 @@ module.exports = {
 </script>
 
 <style scoped>
+
+@media (max-width: 850px) {
+
+  #menuLong {
+
+    display: none;
+
+  }
+
+    #menuShort {
+
+      margin-top: 15px;
+      margin-bottom: 10px;
+
+    }
+
+}
+
+@media (min-width: 851px) {
+  
+  .cal {
+    margin-left: 17%;
+  }
+
+  #menuShort {
+
+    display: none;
+
+  }
+
+}
+
 button {
   margin: 3px;
 }
@@ -219,24 +272,27 @@ button {
   margin-top: 60px;
 }
 
-.cal {
-  margin-left: 17%;
-}
-
 .cal button {
   border: none;
   background-color: #dfe0e1;
 }
 
-.vuecal__event.leisure {
-  background-color: rgba(253, 156, 66, 0.9);
+.vuecal__event.Consultation {
+  background-color: rgba(253, 156, 66, 0.7);
   border: 1px solid rgb(233, 136, 46);
   color: #fff;
 }
-.vuecal__event.sport {
-  background-color: rgba(255, 102, 102, 0.9);
+.vuecal__event.Examen {
+  background-color: rgba(255, 102, 102, 0.7);
   border: 1px solid rgb(235, 82, 82);
   color: #fff;
 }
+
+.vuecal__event.Hospitalisation {
+  background-color: rgba(128, 255, 102, 0.7);
+  border: 1px solid rgb(82, 235, 120);
+  color: #fff;
+}
+
 </style>
 

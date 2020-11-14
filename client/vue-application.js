@@ -70,19 +70,38 @@ var app = new Vue({
       this.patients = res.data
       console.log(this.patients)
     },
-    async logIn(_pseudo, _mdp) {
+    async logIn(_pseudo, _mdp,_role) {
 
-      const res = await axios.post('/api/login/administratif', { pseudo: _pseudo, mdp: _mdp })
-      if (res.status == 200) {
-        alert("Vous êtes connecté.")
-        this.account.loggedAt = res.data.loggedAt
-        this.account.nom = res.data.nom
-        this.account.prenom = res.data.prenom
-        this.account.role = res.data.role
-        this.account.poste = res.data.poste
-      } else {
+      if(_role == 'administratif'){
+
+        const res = await axios.post('/api/login/administratif', { pseudo: _pseudo, mdp: _mdp })
+        if (res.status == 200) {
+          alert("Vous êtes connecté.")
+          this.account.loggedAt = res.data.loggedAt
+          this.account.nom = res.data.nom
+          this.account.prenom = res.data.prenom
+          this.account.role = res.data.role
+          this.account.poste = res.data.poste
+
+          return 
+        }
         alert('Echec de la connexion.')
-        console.log(res)
+      }else{
+
+        const res = await axios.post('/api/login/medecin', { pseudo: _pseudo, mdp: _mdp })
+        if (res.status == 200) {
+          alert("Vous êtes connecté.")
+          this.account.loggedAt = res.data.loggedAt
+          this.account.nom = res.data.nom
+          this.account.prenom = res.data.prenom
+          this.account.role = res.data.role
+          this.account.poste = res.data.specialite
+          this.account.service = res.data.service
+
+          return 
+        }
+        alert('Echec de la connexion.')
+
       }
     },
     async logOut() {

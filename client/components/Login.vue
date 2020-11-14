@@ -1,15 +1,7 @@
 <template>
   <div>
     <div class="sfc"></div>
-    <!--
-    <div v-if="isConnected()" class='formulaire'>
-      <h2>Connectez vous !</h2>
-      <input type="text" placeholder="Pseudo" v-model="pseudo" />
-      <input type="text" placeholder="Mot de passe" v-model="mdp" />
-      <button @click="logIn()">Se connecter</button>
-      <a href='/#/register'> S"inscrire </a> 
-    </div>
--->
+
     <div class="body text-center" v-if="isConnected()">
       <form class="form-signin">
         <img
@@ -19,7 +11,7 @@
           width="72"
           height="72"
         />
-        <h1 class="h3 mb-3 font-weight-normal">Veuillez renseigner les champs suivant</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Veuillez renseigner les champs suivants</h1>
         <label for="inputEmail" class="sr-only">Email address</label>
         <input
           type="text"
@@ -37,7 +29,12 @@
           placeholder="Password"
           v-model="mdp"
         />
-        <button class="btn btn-lg btn-primary btn-block" @click="logIn()">
+        <label for="inputRole" class="sr-only">Role</label>
+        <select id="inputRole" class="form-control" v-model="role">
+          <option value="medecin" selected> Médecin </option>
+          <option value="administratif"> Personnel administratif </option>
+        </select>
+        <button class="btn btn-lg btn-block selfbutton" @click="logIn()">
           Sign in
         </button>
         <p class="mt-5 mb-3 text-muted">&copy; 2020-2021</p>
@@ -45,7 +42,9 @@
     </div>
 
     <div class="formulaire" v-else>
-      <input type="button" value="Se deconnecter" @click="logOut()" />
+      <button class="btn btn-lg btn-block selfbutton" @click="logOut()">
+          Se deconnecter
+      </button>
     </div>
   </div>
 </template>
@@ -57,14 +56,21 @@ module.exports = {
   },
   data() {
     return {
+      nom: "",
+      prenom: "",
       pseudo: "",
-      mdp: ""
+      mdp: "",
+      role: "",
+      poste: "",
+      numPro: "",
+      numPerso: "",
+
     };
   },
   async mounted() {},
   methods: {
     logIn() {
-      this.$emit("log-in", this.pseudo, this.mdp);
+      this.$emit("log-in", this.pseudo, this.mdp, this.role);
     },
     async logOut() {
       this.$emit("log-out");
@@ -88,9 +94,25 @@ module.exports = {
 </script>
 
 <style scoped>
-.formulaire {
-  text-align: center;
-  margin-top: 20px;
+
+@media (min-width: 826px) {
+  .formulaire {
+    text-align: center;
+    margin-top: 30%;
+    margin-left: 40%;
+    margin-right: 40%;
+  }
+}
+
+@media (max-width: 825px) {
+  
+  .formulaire {
+    text-align: center;
+    margin-top: 40%;
+    margin-right: 10%;
+    margin-left: 10%;
+  }
+
 }
 
 .sfc {
@@ -147,5 +169,25 @@ html {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+.selfbutton {
+
+  background-color: darkcyan;
+  color: antiquewhite;
+
+}
+
+.selfbutton:hover {
+
+  color: dimgrey;
+
+}
+
+select {
+
+  margin: 5px;
+
+}
+
 
 </style>
