@@ -4,6 +4,7 @@ const Register = window.httpVueLoader('./components/Register.vue')
 const Login = window.httpVueLoader('./components/Login.vue')
 const Calendar = window.httpVueLoader('./components/Calendar.vue')
 const Dashboard = window.httpVueLoader('./components/Dashboard.vue')
+const Message = window.httpVueLoader('./components/Message.vue')
 
 const routes = [
   { path: '/', component: Home },
@@ -11,7 +12,8 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/login', component: Login },
   { path: '/calendar', component: Calendar },
-  { path: '/dashboard', component: Dashboard }
+  { path: '/dashboard', component: Dashboard },
+  { path: '/message', component: Message }
 ]
 
 const router = new VueRouter({
@@ -49,7 +51,7 @@ var app = new Vue({
 
     if(this.account.loggedAt != null){
 
-      const calendar = await axios.get('api/calendar/all')
+      const calendar = await axios.post('api/calendar/all')
 
       if(calendar.status == 200){
 
@@ -61,15 +63,18 @@ var app = new Vue({
 
       }
 
+      if(this.account.role == 'medecin'){
+
+        const req_patient = await axios.get('/api/myPatient')
+
+        this.patients = req_patient.data
+
+      }
+
     }
 
   },
   methods: {
-    async loadPatient() {
-      const res = await axios.get('/api/table/patient')
-      this.patients = res.data
-      console.log(this.patients)
-    },
     async logIn(_pseudo, _mdp,_role) {
 
       if(_role == 'administratif'){
@@ -117,6 +122,39 @@ var app = new Vue({
         alert('Vous etes deconnecter')
       } else {
         alert('Vous n\'etes pas connecter')
+      }
+
+    },
+    async getCalendar(type, id = -1) {
+
+      if(type == 'patient'){
+
+        const calendar = await axios.post('api/calendar/patient', {patient: id})
+
+        if(calendar.status == 200){
+
+          this.events = calendar.data
+
+        }else{
+
+          console.log('Erreur lors de la requete. Verifier la connection.')
+
+        }
+
+      }else{
+
+        const calendar = await axios.post('api/calendar/' + type)
+
+        if(calendar.status == 200){
+
+          this.events = calendar.data
+
+        }else{
+
+          console.log('Erreur lors de la requete. Verifier la connection.')
+
+        }
+
       }
 
     }

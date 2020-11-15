@@ -3,27 +3,41 @@
 
     <div class="sfc"></div>
 
-    <h1> Mes patients </h1>
+    <h1> Gerer mes patients </h1>
 
-    <ul>
+    <div v-if="!isConnected()">
+       <div class="block">
+          <div class="left">
+            <h2> Informations </h2>
 
-      <li v-for="patient in patients" :key="patient.id"> Nom : {{ patient.nom }} {{ patient.prenom }} </li>
+            <div class="interne">
+              <div class="btn-group-vertical choix" role="group" aria-label="Vertical button group">
+                <button type="button" class="btn btn-outline-info" v-for="item in patients" :key="item.id" @click="changeCurrentPatient(item)">{{item.nom}} {{item.prenom}}</button>
+              </div>
 
-    </ul>
+              <ul class="list-group affichage">
+                <li class="list-group-item"> Numéro de sécurité social : {{currentPatient.nsc}} </li>
+                <li class="list-group-item"> Nom et prénom : {{currentPatient.nom}} {{currentPatient.prenom}} </li>
+                <li class="list-group-item"> Age : {{currentPatient.age}} </li>
+                <li class="list-group-item"> Sexe : {{currentPatient.sexe}} </li>
+                <li class="list-group-item"> Téléphone : {{currentPatient.tel}} </li>
+                <li class="list-group-item"> Adresse : {{currentPatient.adresse}} </li>
+                <li class="list-group-item"> Profession : {{currentPatient.profession}} </li>
+                <li class="list-group-item"> Mutuelle : {{currentPatient.mutuelle}} </li>
+                <li class="list-group-item"> Antécédant : {{currentPatient.antecedent}} </li>
+                <li class="list-group-item"> Sport : {{currentPatient.sport}} </li>
+                <li class="list-group-item"> Nombre d'enfant : {{currentPatient.enfant}} </li>
+                <li class="list-group-item"> Date de naissance : {{currentPatient.naissance}} </li>
+                <li class="list-group-item"> Lieu de naisssance : {{currentPatient.lieu}} </li>
+              </ul>
+            </div>
 
-    <div class="centrer">
-      <input type="button" value="charger patient" :disabled="isConnected()" @click='loadPatient()' class="bouton">
-
-      <div v-if="!isConnected()">
-        <input type="button" value="Se deconnecter" @click="logOut()" class="bouton">
-      </div>
+          </div>
+          <div class="right">
+            <h2> Suivi </h2>
+          </div>
+        </div>
     </div>
-
-    <div id='statusInfo' class="centrer">
-      <div> Statut : {{ getStatus() }} </div>
-      <div v-if="!isConnected()"> Info : {{ account.nom }} {{ account.prenom }} </div>
-    </div>
-
   </div>
 </template>
 
@@ -34,15 +48,33 @@ module.exports = {
     account: { type: Object }
   },
   data() {
-    return {};
+    return {
+      currentPatient: {
+        id: null,
+        nsc: null,
+        nom: null,
+        prenom: null,
+        age: null,
+        sexe: null,
+        tel: null,
+        adresse: null,
+        profession: null,
+        mutuelle: null,
+        antecedent: null,
+        sport: null,
+        enfant: null,
+        service: null,
+        urgence: null,
+        medecin: null,
+        lieu: null,
+        naissance: null
+      }
+    };
   },
   async mounted() {
 
   },
   methods: {
-    async loadPatient(){
-      this.$emit('load-patient')
-    },
     isConnected() {
 
       if(this.account.loggedAt != null){
@@ -61,7 +93,18 @@ module.exports = {
       }else{
         return 'Non connecté'
       }
-    },   
+    },
+    changeCurrentPatient(nouveau){
+
+      if(nouveau.sexe == true){
+        nouveau.sexe = "Homme"
+      }else{
+        nouveau.sexe = "Femme"
+      }
+
+      this.currentPatient = nouveau
+
+    }  
   },
 };
 </script>
@@ -84,5 +127,52 @@ module.exports = {
 .sfc {
   margin-top: 60px;
 }
+
+.block {
+
+  display: flex;
+  background-color:rgb(243, 237, 237);
+  flex-wrap: wrap;
+
+}
+
+.right {
+
+  flex: 1;
+  padding: 10px;
+
+}
+
+.left {
+
+  flex: 1;
+  padding: 10px;
+
+}
+
+.interne {
+
+  display: flex;
+  flex-wrap: wrap;
+
+}
+
+.choix {
+
+  flex: 1;
+  margin-right: 10px;
+  margin-left: 10px;
+
+}
+
+.affichage {
+
+  flex: 1;
+  flex-grow: 3;
+  margin-right: 10px;
+  margin-left: 10px;
+
+}
+
 
 </style>

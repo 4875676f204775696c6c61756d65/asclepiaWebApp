@@ -7,30 +7,16 @@
       <div id="menuShort">
       
         <div class="btn-group" role="group">
-          <button type="button" class="btn btn-outline-info">Tous</button>
-          <button type="button" class="btn btn-outline-info">Consultations</button>
-          <button type="button" class="btn btn-outline-info">Examens</button>
+          <button type="button" class="btn btn-outline-info" @click="getAll()">Tous</button>
+          <button type="button" class="btn btn-outline-info" @click="getConsultation()">Consultations</button>
+          <button type="button" class="btn btn-outline-info" @click="getExamen()">Examens</button>
         </div>
 
         <div class="btn-group" role="group">
-          <button type="button" class="btn btn-outline-info">Hospitalisations</button>
-          <button type="button" class="btn btn-outline-info">Reunions</button>
+          <button type="button" class="btn btn-outline-info" @click="getHospitalisation()">Hospitalisations</button>
+          <button type="button" class="btn btn-outline-info" @click="getReunion()">Reunions</button>
           <button type="button" class="btn btn-outline-info">Autres</button>
         </div>
-        <!--
-        <div>
-          <div class="btn-group" role="group">
-            <button id="btnGroupDrop1" type="button" class="btn btn-outline-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Vu par patient
-            </button>
-            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-              <a class="dropdown-item" href="#">Patient 1</a>
-              <a class="dropdown-item" href="#">Patient 2</a>
-            </div>
-          </div>
-        </div>
-        Necessite popper.js => Chiant a voir si on rajoute
-        --> 
 
       </div>
 
@@ -40,31 +26,31 @@
             <div class="sidebar-sticky">
               <ul class="nav flex-column">
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" @click="getAll()">
                     <span data-feather="home"></span>
                     Tous
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" @click="getConsultation()">
                     <span data-feather="file"></span>
                     Consultations
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" @click="getExamen()">
                     <span data-feather="shopping-cart"></span>
                     Examen
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" @click="getHospitalisation()">
                     <span data-feather="users"></span>
                     Hospitalisation
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" @click="getReunion()">
                     <span data-feather="bar-chart-2"></span>
                     Reunion
                   </a>
@@ -87,27 +73,9 @@
               </h6>
               <ul class="nav flex-column mb-2">
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
+                  <a class="nav-link" href="#" v-for="item in patients" :key="item.id" @click="getPatient(item.id)">
                     <span data-feather="file-text"></span>
-                    Patient 1
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <span data-feather="file-text"></span>
-                    Patient 2
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <span data-feather="file-text"></span>
-                    Patient 3
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <span data-feather="file-text"></span>
-                    Patient 4
+                     {{item.prenom}} {{item.nom}}
                   </a>
                 </li>
               </ul>
@@ -118,7 +86,7 @@
       <vuecal
         class="cal"
         :events="events"
-        :time-from="9 * 60"
+        :time-from="8 * 60"
         :time-to="23 * 60"
         :on-event-click="onEventClick"
         events-on-month-view="short"
@@ -126,6 +94,8 @@
         </vuecal>
 
     </div>
+
+    <!-- Rajouter un jumbotron avec les donnes plus detail du calendrier -->
 
     <div v-else>
       Connecter vous pour pour acceder a votre calendirer personnel. Si vous
@@ -172,6 +142,24 @@ module.exports = {
       this.selectedEvent = event
       console.log(this.selectedEvent.title)
       // affichage ddes details en dessous
+    },
+    getAll() {
+      this.$emit('get-calendar','all')
+    },
+    getReunion() {
+      this.$emit('get-calendar','reunion')
+    },
+    getConsultation() {
+      this.$emit('get-calendar','consultation')
+    },
+    getHospitalisation() {
+      this.$emit('get-calendar','hospitalisation')
+    },
+    getExamen() {
+      this.$emit('get-calendar','examen')
+    },
+    getPatient(id) {
+      this.$emit('get-calendar','patient',id)
     }
   }
 };

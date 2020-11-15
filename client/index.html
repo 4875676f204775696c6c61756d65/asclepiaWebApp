@@ -41,6 +41,7 @@
             <router-link class="nav-item nav-link" to='/dashboard'>Tableau de bord</router-link>
             <router-link class="nav-item nav-link" to='/patient'>Gerer</router-link>
             <router-link class="nav-item nav-link" to='/calendar'>Calendrier</router-link>
+            <router-link class="nav-item nav-link" to='/message'>Messages</router-link>
             <router-link class="nav-item nav-link" to='/register'>S'inscrire</router-link>
             <router-link class="nav-item nav-link" to='/login'>S'identifier</router-link>
           </div>
@@ -53,8 +54,8 @@
 
 
     <main style="margin-top: 2em;">
-      <router-view :account="account" :patients="patients" :events="events" @log-out="logOut" @load-patient="loadPatient"
-        @log-in="logIn">
+      <router-view :account="account" :patients="patients" :events="events" @log-out="logOut"
+        @log-in="logIn" @get-calendar="getCalendar">
       </router-view>
     </main>
 

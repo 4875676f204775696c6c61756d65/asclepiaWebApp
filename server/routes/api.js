@@ -122,13 +122,13 @@ router.post(('/login/:role'), async (req, res) => {
 
 })
 
-router.get(('/calendar/:type'), async (req,res) => {
+router.post(('/calendar/:type'), async (req,res) => {
 
     if(req.session.info.role == 'medecin'){
 
         const type = req.params.type
         const id = req.session.userId
-        const patient = req.session.patientId
+        const patient = req.body.patient
 
         let events = []
 
@@ -240,6 +240,7 @@ router.get(('/calendar/:type'), async (req,res) => {
 
             const result = await db.query({
                 text: requete,
+                values: [id]
             })
 
             if (result.rowCount != 0) {
@@ -274,7 +275,7 @@ router.get(('/calendar/:type'), async (req,res) => {
                         start: result.rows[i].date + " " + result.rows[i].heure,
                         end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
                         title: result.rows[i].nom,
-                        content: result.rows[i].commentaire,
+                        content: result.rows[i].resulat,
                         class: "Examen"
                     }
 
@@ -288,8 +289,7 @@ router.get(('/calendar/:type'), async (req,res) => {
             const requete = "SELECT * FROM reunion"
 
             const result = await db.query({
-                text: requete,
-                values: [id]
+                text: requete
             })
 
             if (result.rowCount != 0) {
@@ -385,7 +385,7 @@ router.get(('/calendar/:type'), async (req,res) => {
                         start: result.rows[i].date + " " + result.rows[i].heure,
                         end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
                         title: result.rows[i].nom,
-                        content: result.rows[i].commentaire,
+                        content: result.rows[i].resultat,
                         class: "Examen"
                     }
 
@@ -428,6 +428,7 @@ router.get(('/calendar/:type'), async (req,res) => {
 
         }
 
+        console.log(events)
         res.json(events)
 
     }else if(req.session.info.role == 'administratif'){
@@ -543,6 +544,22 @@ router.get('/table/:nom', async (req, res) => {
         res.status(401).json({ message: 'Vous n\'êtes pas logger ou vous n\'avez pas les droits suffisants.' })
 
     }
+
+})
+
+router.get(('/myPatient') , async (req,res) => {
+
+    const id = req.session.userId
+
+    const requete = "SELECT * FROM patient WHERE medecin=$1"
+
+    const result = await db.query({
+        text: requete,
+        values: [id]
+    })
+
+    console.log(result.rows)
+    res.json(result.rows)
 
 })
 
