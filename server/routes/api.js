@@ -563,6 +563,91 @@ router.get(('/myPatient') , async (req,res) => {
 
 })
 
+router.get(('/myPatientInfo'), async (req,res) => {
+
+    if(req.session.info.role == 'medecin'){
+
+        const id = req.session.userId
+        const patient = req.body.patient
+
+        let retour = []
+
+        const req_getPatient = "SELECT id FROM patient WHERE medecin=$1"
+
+        const res_getPatient = await db.query({
+            text: req_getPatient,
+            values: [id]
+        })
+
+        listePatient = res_getPatient.rows
+
+        for(i = 0; i < res_getPatient.rowCount ; i++){
+
+            let ajout = {
+                id: listePatient[i],
+                hospitalisation: [],
+                consultation: [],
+                examen: [],
+                maladie: [],
+                allergie: []
+            }
+
+            req_getHospi = "SELECT  * FROM hospitalisation WHERE patient=$1"
+
+            res_getHospi = await db.query({
+                text: req_getHospi,
+                values: [listePatient[i].id]
+            })
+
+            ajout.hospitalisation = res_getHospi.rows
+
+            req_getConsult = "SELECT * FROM consultation WHERE patient=$1"
+
+            res_getConsult = await db.query({
+                text: req_getConsult,
+                values: [listePatient[i].id]
+            })
+
+            ajout.consultation = res_getConsult.rows
+
+            req_getExamen = "SELECT  * FROM examen WHERE patient=$1"
+
+            res_getExamen = await db.query({
+                text: req_getExamen,
+                values: [listePatient[i].id]
+            })
+
+            ajout.examen = res_getExamen.rows
+
+            req_getMaladie = "SELECT  * FROM maladie WHERE patient=$1"
+
+            res_getMaladie = await db.query({
+                text: req_getMaladie,
+                values: [listePatient[i].id]
+            })
+
+            ajout.maladie = res_getMaladie.rows
+
+            req_getAllergie = "SELECT  * FROM allergie WHERE patient=$1"
+
+            res_getAllergie = await db.query({
+                text: req_getAllergie,
+                values: [listePatient[i].id]
+            })
+
+            ajout.allergie = res_getAllergie
+
+            retour.push(ajout)
+
+        }
+
+        console.log(ajout)
+        res.json(ajout)
+
+    }
+
+})
+
 router.get('/get/one/:table', async (req, res) => {
 
     if (req.session.info.role == 'administratif' && req.session.info.role == 'Gestionnaire de la BDD') {

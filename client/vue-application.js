@@ -34,6 +34,7 @@ var app = new Vue({
       service: null,
       poste: null
     },
+    patientDossier: []
   },
   async mounted() {
 
@@ -68,6 +69,8 @@ var app = new Vue({
         const req_patient = await axios.get('/api/myPatient')
 
         this.patients = req_patient.data
+
+        this.getPatientInfo()
 
       }
 
@@ -156,6 +159,13 @@ var app = new Vue({
         }
 
       }
+
+    },
+    async getPatientInfo() {
+
+      const res = await axios.get('/api/myPatientInfo')
+
+      patientDossier = res.data
 
     }
   }

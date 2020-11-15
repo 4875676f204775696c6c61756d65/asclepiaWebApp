@@ -8,7 +8,7 @@
     <div v-if="!isConnected()">
        <div class="block">
           <div class="left">
-            <h2> Informations </h2>
+            <h2> Informations générales </h2>
 
             <div class="interne">
               <div class="btn-group-vertical choix" role="group" aria-label="Vertical button group">
@@ -34,7 +34,22 @@
 
           </div>
           <div class="right">
-            <h2> Suivi </h2>
+            <h2> Suivi du dossier </h2>
+
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-secondary">Hospitalisations</button>
+              <button type="button" class="btn btn-secondary">Consultations</button>
+              <button type="button" class="btn btn-secondary">Examens</button>
+              <button type="button" class="btn btn-secondary">Maladies</button>
+              <button type="button" class="btn btn-secondary">Allergies</button>
+            </div>
+
+            <div>
+
+              <div v-for="dossier in patientDossier" :key="dossier.id"> {{dossier.id}} </div>
+
+            </div>
+
           </div>
         </div>
     </div>
@@ -45,7 +60,8 @@
 module.exports = {
   props: {
     patients: {type: Array, default: []},
-    account: { type: Object }
+    account: { type: Object },
+    patientDossier: {type: Array, default: []}
   },
   data() {
     return {
@@ -68,7 +84,11 @@ module.exports = {
         medecin: null,
         lieu: null,
         naissance: null
-      }
+      },
+      currentTab: null,
+      currentTabInfo: {
+        here: null
+      },
     };
   },
   async mounted() {
@@ -104,7 +124,12 @@ module.exports = {
 
       this.currentPatient = nouveau
 
-    }  
+    },
+    changeCurrentTab(tab){
+
+      this.currentTab = tab
+
+    }
   },
 };
 </script>
