@@ -3,21 +3,44 @@
     <div class="sfc"></div>
 
     <div class="centrer" v-if="!isConnected()">
-
       <div id="menuShort">
-      
         <div class="btn-group" role="group">
-          <button type="button" class="btn btn-outline-info" @click="getAll()">Tous</button>
-          <button type="button" class="btn btn-outline-info" @click="getConsultation()">Consultations</button>
-          <button type="button" class="btn btn-outline-info" @click="getExamen()">Examens</button>
+          <button type="button" class="btn btn-outline-info" @click="getAll()">
+            Tous
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            @click="getConsultation()"
+          >
+            Consultations
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            @click="getExamen()"
+          >
+            Examens
+          </button>
         </div>
 
         <div class="btn-group" role="group">
-          <button type="button" class="btn btn-outline-info" @click="getHospitalisation()">Hospitalisations</button>
-          <button type="button" class="btn btn-outline-info" @click="getReunion()">Reunions</button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            @click="getHospitalisation()"
+          >
+            Hospitalisations
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-info"
+            @click="getReunion()"
+          >
+            Reunions
+          </button>
           <button type="button" class="btn btn-outline-info">Autres</button>
         </div>
-
       </div>
 
       <div id="menuLong" class="container-fluid">
@@ -73,9 +96,15 @@
               </h6>
               <ul class="nav flex-column mb-2">
                 <li class="nav-item">
-                  <a class="nav-link" href="#" v-for="item in patients" :key="item.id" @click="getPatient(item.id)">
+                  <a
+                    class="nav-link"
+                    href="#"
+                    v-for="item in patients"
+                    :key="item.id"
+                    @click="getPatient(item.id)"
+                  >
                     <span data-feather="file-text"></span>
-                     {{item.prenom}} {{item.nom}}
+                    {{ item.prenom }} {{ item.nom }}
                   </a>
                 </li>
               </ul>
@@ -86,26 +115,60 @@
       <vuecal
         class="cal"
         :events="events"
-        :time-from="8 * 60"
+        :time-from="7 * 60"
         :time-to="23 * 60"
         :on-event-click="onEventClick"
+        :time-step="30"
         events-on-month-view="short"
+        active-view="month"
       >
-        </vuecal>
+      </vuecal>
 
+      <div v-if="Object.keys(selectedEvent).length != 0">
+        <ul class="list-group cal">
+          <li class="list-group-item">
+            Type d'événement : {{ selectedEvent.class }}
+          </li>
+          <li class="list-group-item">
+            Nom de l'événement : {{ selectedEvent.title }}
+          </li>
+          <li class="list-group-item">
+            Début : le {{ selectedEvent.start.format("DD/MM/YYYY") }} à
+            {{ selectedEvent.start.formatTime() }}
+          </li>
+          <li class="list-group-item">
+            Fin : le {{ selectedEvent.end.format("DD/MM/YYYY") }} à
+            {{ selectedEvent.end.formatTime() }}
+          </li>
+          <li class="list-group-item">Détails : {{ selectedEvent.content }}</li>
+        </ul>
+      </div>
     </div>
 
-    <!-- Rajouter un jumbotron avec les donnes plus detail du calendrier -->
-
-    <div v-else>
-      Connecter vous pour pour acceder a votre calendirer personnel. Si vous
-      n'avez pas de compte inscrivez vous.
+    <div v-if="isConnected()">
+      <section class="jumbotron text-center">
+        <div class="container">
+          <h1>Rejoignez-nous !</h1>
+          <p class="lead text-muted">
+            Pour pouvoir profiter pleinement des fonctionnalités du site il vous
+            faut creer un compte. Si vous en avez deja un connecter vous pour
+            acceder à vos informations personnel.
+          </p>
+          <p>
+            <a href="#/register" class="btn btn-primary my-2">
+              Je n'ai pas encore de compte
+            </a>
+            <a href="#/login" class="btn btn-secondary my-2">
+              J'ai deja un compte
+            </a>
+          </p>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script>
-
 module.exports = {
   components: { vuecal },
   props: {
@@ -117,7 +180,7 @@ module.exports = {
     const month = new Date().getMonth();
     const year = new Date().getFullYear();
     return {
-      selectedEvent: {},
+      selectedEvent: {}
     };
   },
   methods: {
@@ -138,64 +201,53 @@ module.exports = {
         return "Non connecté";
       }
     },
-    onEventClick (event, e) {
-      this.selectedEvent = event
-      console.log(this.selectedEvent.title)
+    onEventClick(event, e) {
+      this.selectedEvent = event;
+      console.log(this.selectedEvent.title);
       // affichage ddes details en dessous
     },
     getAll() {
-      this.$emit('get-calendar','all')
+      this.$emit("get-calendar", "all");
     },
     getReunion() {
-      this.$emit('get-calendar','reunion')
+      this.$emit("get-calendar", "reunion");
     },
     getConsultation() {
-      this.$emit('get-calendar','consultation')
+      this.$emit("get-calendar", "consultation");
     },
     getHospitalisation() {
-      this.$emit('get-calendar','hospitalisation')
+      this.$emit("get-calendar", "hospitalisation");
     },
     getExamen() {
-      this.$emit('get-calendar','examen')
+      this.$emit("get-calendar", "examen");
     },
     getPatient(id) {
-      this.$emit('get-calendar','patient',id)
+      this.$emit("get-calendar", "patient", id);
     }
   }
 };
 </script>
 
 <style scoped>
-
 @media (max-width: 850px) {
-
   #menuLong {
-
     display: none;
-
   }
 
-    #menuShort {
-
-      margin-top: 15px;
-      margin-bottom: 10px;
-
-    }
-
+  #menuShort {
+    margin-top: 15px;
+    margin-bottom: 10px;
+  }
 }
 
 @media (min-width: 851px) {
-  
   .cal {
     margin-left: 17%;
   }
 
   #menuShort {
-
     display: none;
-
   }
-
 }
 
 button {
@@ -282,5 +334,10 @@ button {
   color: #fff;
 }
 
+.vuecal__event.Reunion {
+  background-color: rgba(102, 138, 255, 0.7);
+  border: 1px solid rgb(102, 138, 255, 0.7);
+  color: #fff;
+}
 </style>
 

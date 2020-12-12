@@ -15,15 +15,15 @@
 
   <link rel="shortcut icon" type="image/png" href="icon/favicon.png" />
 
-  
+
   <script src="https://cdn.jsdelivr.net/npm/vue-cal"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-cal@1.62.1/dist/vuecal.css">
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <!-- Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> -->
 </head>
@@ -42,11 +42,10 @@
             <router-link class="nav-item nav-link" to='/patient'>Gerer</router-link>
             <router-link class="nav-item nav-link" to='/calendar'>Calendrier</router-link>
             <router-link class="nav-item nav-link" to='/message'>Messages</router-link>
-            <router-link class="nav-item nav-link" to='/register'>S'inscrire</router-link>
-            <router-link class="nav-item nav-link" to='/login'>S'identifier</router-link>
           </div>
         </div>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+          aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
       </nav>
@@ -54,8 +53,11 @@
 
 
     <main style="margin-top: 2em;">
-      <router-view :account="account" :patients="patients" :patientDossier="patientDossier" :events="events" @log-out="logOut"
-        @log-in="logIn" @get-calendar="getCalendar">
+      <router-view :account="account" :patients="patients" :events="events" @log-out="logOut" @log-in="logIn"
+        @get-calendar="getCalendar" :messages="messages" :contacts="contacts" :dossiers="dossiers"
+        @send-new-message="sendNewMessage" @supprimer-message="supprimerMessage" @create-new-patient="createNewPatient"
+        @update-patient="updatePatient" @change-pass="changePassword" :info="info" @register="Register"
+        @change-info-perso="changeInfoPerso">
       </router-view>
     </main>
 

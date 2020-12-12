@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 
-//  Load dependencies for database connect and manage
 
 const bcrypt = require('bcrypt')
 const { Client } = require('pg')
@@ -20,9 +19,9 @@ class Info {
 const db = new Client({
     user: 'postgres',
     host: 'localhost',
-    port: '5433',
-    password: 'toor',
-    database: 'ASCLEPIA'
+    port: '5433', //Remplacer par votre port ou rien si port 5432 (defaut)
+    password: 'toor', // Remplacer par le mdp de la DB
+    database: 'ASCLEPIA' // Nom de la DB
 })
 
 db.connect()
@@ -30,11 +29,11 @@ db.connect()
 
 router.use((req, res, next) => {
 
-    if(typeof req.session.userId == 'undefined' && req.path != '/whoiam' && req.path != '/login/medecin' && req.path != '/login/administratif' && req.path != '/register/medecin' && req.path != '/register/administratif'){
+    if (typeof req.session.userId == 'undefined' && req.path != '/whoiam' && req.path != '/login/medecin' && req.path != '/login/administratif' && req.path != '/register/medecin' && req.path != '/register/administratif') {
 
         res.status(401).json({ message: 'Acces non permis. Veuillez vous authentifier ou vous inscrire pour acceder a l\'API' })
 
-    }else{
+    } else {
 
         next()
 
@@ -42,21 +41,21 @@ router.use((req, res, next) => {
 
 })
 
-router.post(('/end'), (req,res) => {
+router.post(('/end'), (req, res) => {
 
     req.session.destroy()
 
-    res.json({ message: 'See you '})
+    res.json({ message: 'See you ' })
 
 })
 
-router.get(('/whoiam'), (req,res) => {
+router.get(('/whoiam'), (req, res) => {
 
-    if(typeof req.session.userId == 'undefined'){
-        
+    if (typeof req.session.userId == 'undefined') {
+
         res.json({ message: 'Pas de session active' })
-        
-    }else{
+
+    } else {
 
         res.json(req.session.info)
 
@@ -97,7 +96,7 @@ router.post(('/login/:role'), async (req, res) => {
 
             req.session.userId = result.rows[0].id
             req.session.info.nom = result.rows[0].nom
-            req.session.info.prenom = result.rows[0].prénom
+            req.session.info.prenom = result.rows[0].prenom
             req.session.info.role = table
 
             if (table == 'medecin') {
@@ -122,9 +121,9 @@ router.post(('/login/:role'), async (req, res) => {
 
 })
 
-router.post(('/calendar/:type'), async (req,res) => {
+router.post(('/calendar/:type'), async (req, res) => {
 
-    if(req.session.info.role == 'medecin'){
+    if (req.session.info.role == 'medecin') {
 
         const type = req.params.type
         const id = req.session.userId
@@ -132,7 +131,7 @@ router.post(('/calendar/:type'), async (req,res) => {
 
         let events = []
 
-        if(type == 'all'){
+        if (type == 'all') {
 
             let requete = "SELECT * FROM consultation WHERE medecin=$1"
 
@@ -142,11 +141,11 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 60),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Consultation"
@@ -157,7 +156,7 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-            requete = "SELECT * FROM examen WHERE médecin=$1"
+            requete = "SELECT * FROM examen WHERE medecin=$1"
 
             result = await db.query({
                 text: requete,
@@ -165,11 +164,11 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 90),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Examen"
@@ -188,7 +187,7 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].debut,
@@ -219,13 +218,14 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 60),
                         title: result.rows[i].nom,
-                        content: result.rows[i].organisateur,
+                        //content: result.rows[i].organisateur,
+                        content: 'Louis Cherel',
                         class: "Reunion"
                     }
 
@@ -234,7 +234,7 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-        }else if(type == 'consultation'){
+        } else if (type == 'consultation') {
 
             const requete = "SELECT * FROM consultation WHERE medecin=$1"
 
@@ -244,11 +244,11 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 60),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Consultation"
@@ -259,9 +259,9 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-        }else if(type == 'examen'){
+        } else if (type == 'examen') {
 
-            const requete = "SELECT * FROM examen WHERE médecin=$1"
+            const requete = "SELECT * FROM examen WHERE medecin=$1"
 
             const result = await db.query({
                 text: requete,
@@ -269,11 +269,11 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 90),
                         title: result.rows[i].nom,
                         content: result.rows[i].resulat,
                         class: "Examen"
@@ -284,7 +284,7 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-        }else if(type == 'reunion'){
+        } else if (type == 'reunion') {
 
             const requete = "SELECT * FROM reunion"
 
@@ -293,13 +293,14 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 60),
                         title: result.rows[i].nom,
-                        content: result.rows[i].organisateur,
+                        //content: result.rows[i].organisateur,
+                        content: 'Louis Cherel',
                         class: "Reunion"
                     }
 
@@ -308,7 +309,7 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-        }else if(type == 'hospitalisation'){
+        } else if (type == 'hospitalisation') {
 
             const requete = "SELECT * FROM hospitalisation WHERE medecin=$1"
 
@@ -318,7 +319,7 @@ router.post(('/calendar/:type'), async (req,res) => {
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].debut,
@@ -342,25 +343,25 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-        }else if(type == 'autres'){
+        } else if (type == 'autres') {
 
             res.json({ message: 'Rien pour l\'instant' })
 
-        }else if(type == 'patient'){
+        } else if (type == 'patient') {
 
             let requete = "SELECT * FROM consultation WHERE medecin=$1 AND patient=$2"
 
             let result = await db.query({
                 text: requete,
-                values: [id,patient]
+                values: [id, patient]
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,60),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 60),
                         title: result.rows[i].nom,
                         content: result.rows[i].commentaire,
                         class: "Consultation"
@@ -371,19 +372,19 @@ router.post(('/calendar/:type'), async (req,res) => {
                 }
             }
 
-            requete = "SELECT * FROM examen WHERE médecin=$1 AND patient=$2"
+            requete = "SELECT * FROM examen WHERE medecin=$1 AND patient=$2"
 
             result = await db.query({
                 text: requete,
-                values: [id,patient]
+                values: [id, patient]
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].date + " " + result.rows[i].heure,
-                        end: result.rows[i].date + " " + addTime(result.rows[i].heure,90),
+                        end: result.rows[i].date + " " + addTime(result.rows[i].heure, 90),
                         title: result.rows[i].nom,
                         content: result.rows[i].resultat,
                         class: "Examen"
@@ -398,11 +399,11 @@ router.post(('/calendar/:type'), async (req,res) => {
 
             result = await db.query({
                 text: requete,
-                values: [id,patient]
+                values: [id, patient]
             })
 
             if (result.rowCount != 0) {
-                for(i = 0; i < result.rowCount ; i++){
+                for (i = 0; i < result.rowCount; i++) {
 
                     let ajout = {
                         start: result.rows[i].debut,
@@ -431,7 +432,7 @@ router.post(('/calendar/:type'), async (req,res) => {
         console.log(events)
         res.json(events)
 
-    }else if(req.session.info.role == 'administratif'){
+    } else if (req.session.info.role == 'administratif') {
 
         const type = req.params.type
         const id = req.session.userId
@@ -441,16 +442,15 @@ router.post(('/calendar/:type'), async (req,res) => {
         const requete = "SELECT * FROM reunion"
 
         const result = await db.query({
-            text: requete,
-            values: [id]
+            text: requete
         })
 
         if (result.rowCount != 0) {
-            for(i = 0; i < result.rowCount ; i++){
+            for (i = 0; i < result.rowCount; i++) {
 
                 let ajout = {
                     start: result.rows[i].date + " " + result.rows[i].heure,
-                    end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure,10) + 60),
+                    end: result.rows[i].date + " " + toString(parseInt(result.rows[i].heure, 10) + 60),
                     title: result.rows[i].nom,
                     content: result.rows[i].commentaire,
                     class: "Reunion"
@@ -463,12 +463,179 @@ router.post(('/calendar/:type'), async (req,res) => {
 
         res.json(events)
 
-    }else{
+    } else {
 
         console.log('Erreur')
         res.status(400).json({ message: 'Erreur de session' })
 
     }
+
+})
+
+router.get(('/message'), async (req, res) => {
+
+    console.log('get message')
+
+    const id = req.session.userId
+    const role = req.session.info.role
+
+    let envoi = []
+
+    let recu = []
+
+    const requeteEnvoi = "SELECT * FROM message WHERE expediteur=$1 AND expRole=$2"
+
+    const resultEnvoi = await db.query({
+        text: requeteEnvoi,
+        values: [id, role]
+    })
+
+    envoi = resultEnvoi.rows
+    console.log(resultEnvoi.rows)
+
+    for (i = 0; i < resultEnvoi.rowCount; i++) {
+
+        if (envoi[i].destrole == 'medecin' || envoi[i].destrole == 'administratif') {
+
+            const getNameDest = "SELECT nom,prenom FROM " + envoi[i].destrole + " WHERE id=$1"
+
+            const nameDest = await db.query({
+                text: getNameDest,
+                values: [envoi[i].destinataire]
+            })
+
+            envoi[i].destinataire = nameDest.rows[0].prenom + " " + nameDest.rows[0].nom
+
+        } else {
+
+            console.log('! ==> Donnes errone dans la base !')
+
+        }
+
+
+    }
+
+    const requeteRecu = "SELECT * FROM message WHERE destinataire=$1 AND destrole=$2"
+
+    const resultRecu = await db.query({
+        text: requeteRecu,
+        values: [id, role]
+    })
+
+    recu = resultRecu.rows
+
+    console.log(resultRecu.rows)
+
+    for (i = 0; i < resultRecu.rowCount; i++) {
+
+        if (recu[i].exprole == 'medecin' || recu[i].exprole == 'administratif') {
+
+            const getNameExp = "SELECT nom,prenom FROM " + recu[i].exprole + " WHERE id=$1"
+
+            const nameExp = await db.query({
+                text: getNameExp,
+                values: [recu[i].expediteur]
+            })
+
+            recu[i].expediteur = nameExp.rows[0].prenom + " " + nameExp.rows[0].nom
+
+        } else {
+
+            console.log('! ==> Donnes errone dans la base !')
+
+        }
+
+    }
+
+    if (envoi.length == 0 && recu.length == 0) {
+        res.json([[], []])
+    } else {
+        res.json([envoi, recu])
+    }
+
+})
+
+router.get(('/contact'), async (req, res) => {
+
+    let medecin = []
+    let administratif = []
+
+    const reqMed = "SELECT id,nom,prenom FROM medecin"
+
+    const resMed = await db.query({
+        text: reqMed
+    })
+
+    medecin = resMed.rows
+
+    const reqAdm = "SELECT id,nom,prenom FROM administratif"
+
+    const resAdm = await db.query({
+        text: reqAdm
+    })
+
+    administratif = resAdm.rows
+
+    res.json([medecin, administratif])
+
+})
+
+router.post(('/message'), async (req, res) => {
+
+    const expediteur = req.session.userId
+    const expRole = req.session.info.role
+    const destinataire = req.body.dest
+    const destrole = req.body.destr
+    const sujet = req.body.sujet
+    const contenu = req.body.contenu
+    const date = "21/11/2020"
+    const heure = "18:00"
+    const lu = false
+
+    const requete = "INSERT INTO message (expediteur,expRole,destinataire,destrole,sujet,contenu,date,heure,lu) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *"
+
+    const result = await db.query({
+        text: requete,
+        values: [expediteur, expRole, destinataire, destrole, sujet, contenu, date, heure, lu]
+    })
+
+    console.log(result.rows)
+    res.json(result.rows)
+
+})
+
+router.delete(('/message/:choix'), async (req, res) => {
+
+    const id = req.session.userId
+    const message = parseInt(req.params.choix)
+
+    const requete = "DELETE FROM message WHERE id=$1 AND destinataire=$2 RETURNING *"
+
+    const result = await db.query({
+        text: requete,
+        values: [message, id]
+    })
+
+    if (result.rowCount == 0) {
+        res.status(400).json({ message: "Ce message n'existe pas ou ne vous appartiens pas." })
+    } else {
+        res.json({ message: "Message supprimer." })
+    }
+
+})
+
+router.get(('/infoperso'), async (req, res) => {
+
+    const id = req.session.userId
+
+    const requete = "SELECT id,nom,prenom,specialite,emplacement,numpro,numperso,service,pseudo FROM medecin WHERE id=$1"
+
+    const result = await db.query({
+        text: requete,
+        values: [id]
+    })
+
+    res.json(result.rows)
 
 })
 
@@ -514,7 +681,7 @@ router.get('/table/:nom', async (req, res) => {
 
             } else if (table == 'administratif') {
 
-                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table
+                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prenom FROM " + table
 
             } else {
 
@@ -547,7 +714,7 @@ router.get('/table/:nom', async (req, res) => {
 
 })
 
-router.get(('/myPatient') , async (req,res) => {
+router.get(('/myPatient'), async (req, res) => {
 
     const id = req.session.userId
 
@@ -563,9 +730,9 @@ router.get(('/myPatient') , async (req,res) => {
 
 })
 
-router.get(('/myPatientInfo'), async (req,res) => {
+router.get(('/myPatientInfo'), async (req, res) => {
 
-    if(req.session.info.role == 'medecin'){
+    if (req.session.info.role == 'medecin') {
 
         const id = req.session.userId
         const patient = req.body.patient
@@ -581,10 +748,10 @@ router.get(('/myPatientInfo'), async (req,res) => {
 
         listePatient = res_getPatient.rows
 
-        for(i = 0; i < res_getPatient.rowCount ; i++){
+        for (i = 0; i < res_getPatient.rowCount; i++) {
 
             let ajout = {
-                id: listePatient[i],
+                id: listePatient[i].id,
                 hospitalisation: [],
                 consultation: [],
                 examen: [],
@@ -635,14 +802,14 @@ router.get(('/myPatientInfo'), async (req,res) => {
                 values: [listePatient[i].id]
             })
 
-            ajout.allergie = res_getAllergie
+            ajout.allergie = res_getAllergie.rows
 
             retour.push(ajout)
 
         }
 
-        console.log(ajout)
-        res.json(ajout)
+        console.log(retour)
+        res.json(retour)
 
     }
 
@@ -760,7 +927,7 @@ router.get('/getAll/:table', async (req, res) => {
 
             } else if (table == 'administratif') {
 
-                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prénom FROM " + table + " WHERE id=$1"
+                requete = "SELECT id,nom,pseudo,poste,numpro,numperso,emplacement,prenom FROM " + table + " WHERE id=$1"
 
             } else {
 
@@ -845,8 +1012,6 @@ router.post('/register/medecin', async (req, res) => {
 
     mdp = await bcrypt.hash(mdp, 10)
 
-    //Rajouter des verifs ou ici ou cote client
-
     let validation = true
 
     const verif_req_pseudo = "SELECT pseudo FROM medecin"
@@ -862,28 +1027,6 @@ router.post('/register/medecin', async (req, res) => {
         }
 
     }
-
-    //Tester cette partie apres avoir fait un service ...
-    let serviceId = -1
-
-    const verif_req_service = "SELECT id,nom FROM " + service
-
-    const verif_service = await db.query({
-        text: verif_req_service
-    })
-
-    for (i = 0; i < verif_service.rowCount; i++) {
-
-        if (service == verif_service.rows[i].nom) {
-            serviceId = verif_service.rows[i].id
-        }
-
-    }
-
-    if (serviceId == -1) {
-        validation = false
-    }
-
 
     if (validation === true) {
 
@@ -941,7 +1084,7 @@ router.post('/register/administratif', async (req, res) => {
 
     if (validation === true) {
 
-        const requete = "INSERT INTO administratif(nom,prénom,pseudo,mdp,poste,emplacement, numpro, numperso) values($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *"
+        const requete = "INSERT INTO administratif(nom,prenom,pseudo,mdp,poste,emplacement, numpro, numperso) values($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *"
 
         const result = await db.query({
             text: requete,
@@ -969,7 +1112,7 @@ router.post('/add/patient', async (req, res) => {
         const prenom = req.body.prenom
         const nom = req.body.nom
         const nsc = req.body.nsc
-        const age = req.body.age
+        const age = parseInt(req.body.age)
         const sexe = req.body.sexe  //true = homme et false == femme
         const birthDate = req.body.naissance
         const birthPlace = req.body.lieu
@@ -977,7 +1120,7 @@ router.post('/add/patient', async (req, res) => {
         const adresse = req.body.adresse
         const profession = req.body.profession
         const mutuelle = req.body.mutuelle
-        const medecin = req.body.medecin
+        const medecin = parseInt(req.session.userId)
         const antecedant = req.body.antecedant
         const urgence = req.body.urgence
         const sport = req.body.sport
@@ -1000,59 +1143,17 @@ router.post('/add/patient', async (req, res) => {
 
         }
 
-        //Tester cette partie apres avoir fait un service ...
-
-        let serviceId = -1
-
-        const verif_req_service = "SELECT id,nom FROM " + service
-
-        const verif_service = await db.query({
-            text: verif_req_service
-        })
-
-        for (i = 0; i < verif_service.rowCount; i++) {
-
-            if (service == verif_service.rows[i].nom) {
-                serviceId = verif_service.rows[i].id
-            }
-
-        }
-
-        if (serviceId == -1) {
-            validation = false
-        }
-
-        let medecinId = -1
-
-        const verif_req_med = "SELECT id,nom FROM medecin"
-
-        const verif_med = await db.query({
-            text: verif_req_med
-        })
-
-        for (i = 0; i < verif_med.rowCount; i++) {
-
-            if (medecin == verif_med.rows[i].nom) {
-                medecinId = verif_med.rows[i].id
-            }
-
-        }
-
-        if (medecinId == -1) {
-
-            validation = false
-
-        }
 
         if (validation === true) {
 
             const requete = "INSERT INTO patient(nom,prenom,nsc,age,sexe,lieu,tel,adresse,profession,mutuelle,antecedent,sport,medecin,service,enfant,urgence,naissance) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *"
 
-            //const requete = "INSERT INTO patient(nom,prénom,nsc,age,sexe) VALUES($1,$2,$3,$4,$5)"
             const result = await db.query({
                 text: requete,
-                values: [nom, prenom, nsc, age, sexe, birthPlace, tel, adresse, profession, mutuelle, antecedant, sport, medecinId, serviceId, enfant, urgence, birthDate]
+                values: [nom, prenom, nsc, age, sexe, birthPlace, tel, adresse, profession, mutuelle, antecedant, sport, medecin, service, enfant, urgence, birthDate]
             })
+
+            console.log(result)
 
             if (result.rowCount == 0) {
                 res.status(400).json({ message: 'Erreur lors de la creation du compte. Reessayer.' })
@@ -1439,8 +1540,12 @@ router.put(('/update/:table'), async (req, res) => {
 
         const table = req.params.table
         const champ = req.body.champ
-        const id = req.body.id
+        let id = req.body.id
         const valeur = req.body.valeur
+
+        if (id == -1) {
+            id = req.session.userId
+        }
 
         let validation = false
 
@@ -1480,6 +1585,7 @@ router.put(('/update/:table'), async (req, res) => {
 
             if (champ == 'mdp' || champ == 'id') {
                 validation = false
+                console.log('champ')
             }
 
             if (validation === true) {
@@ -1492,6 +1598,7 @@ router.put(('/update/:table'), async (req, res) => {
                 })
 
                 if (result.rowCount == 0) {
+                    console.log(champ, id,)
                     res.status(400).json({ message: 'Erreur lors de la mise a jour de la base de donnes.' })
                 } else {
                     res.json(result.rows)
@@ -1587,19 +1694,43 @@ router.delete(('/delete/:table'), async (req, res) => {
 
 })
 
+router.put(('/changepass/medecin'), async (req, res) => {
+
+    const id = req.session.userId
+    const newPass = req.body.nouveau
+
+    const hashPass = await bcrypt.hash(newPass, 10)
+
+    const requete = "UPDATE medecin SET mdp=$1 WHERE id=$2 RETURNING nom,prenom"
+
+    const result = await db.query({
+        text: requete,
+        values: [hashPass, id]
+    })
+
+    if (result.rowCount == 1) {
+        res.json({ message: "Le mot de passe de " + result.rows[0].nom + "" + result.rows[0].prenom + " a bien ete mis a jour." })
+    } else {
+        res.status(400).json({ message: erreur })
+    }
+
+})
+
+
+
 // fonction support :
 
-function addTime(depart, ajout){
+function addTime(depart, ajout) {
 
     let index = depart.search(':')
 
-    let heure = depart.substring(0,index)
+    let heure = depart.substring(0, index)
 
-    let minute = depart.substring(index+1)
+    let minute = depart.substring(index + 1)
 
     let minuteNew = parseInt(minute) + ajout
 
-    if(minuteNew >= 60){
+    if (minuteNew >= 60) {
         minuteNew = minuteNew - 60
         heure = parseInt(heure) + 1
     }

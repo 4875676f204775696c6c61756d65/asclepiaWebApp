@@ -11,7 +11,9 @@
           width="72"
           height="72"
         />
-        <h1 class="h3 mb-3 font-weight-normal">Veuillez renseigner les champs suivants</h1>
+        <h1 class="h3 mb-3 font-weight-normal">
+          Veuillez renseigner les champs suivants
+        </h1>
         <label for="inputEmail" class="sr-only">Email address</label>
         <input
           type="text"
@@ -43,7 +45,7 @@
 
     <div class="formulaire" v-else>
       <button class="btn btn-lg btn-block selfbutton" @click="logOut()">
-          Se deconnecter
+        Se deconnecter
       </button>
     </div>
   </div>
@@ -63,8 +65,7 @@ module.exports = {
       role: "",
       poste: "",
       numPro: "",
-      numPerso: "",
-
+      numPerso: ""
     };
   },
   async mounted() {},
@@ -94,7 +95,6 @@ module.exports = {
 </script>
 
 <style scoped>
-
 @media (min-width: 826px) {
   .formulaire {
     text-align: center;
@@ -105,14 +105,12 @@ module.exports = {
 }
 
 @media (max-width: 825px) {
-  
   .formulaire {
     text-align: center;
     margin-top: 40%;
     margin-right: 10%;
     margin-left: 10%;
   }
-
 }
 
 .sfc {
@@ -120,9 +118,7 @@ module.exports = {
 }
 
 html {
-
   height: 100%;
-
 }
 
 .body {
@@ -171,23 +167,15 @@ html {
 }
 
 .selfbutton {
-
   background-color: darkcyan;
   color: antiquewhite;
-
 }
 
 .selfbutton:hover {
-
   color: dimgrey;
-
 }
 
 select {
-
   margin: 5px;
-
 }
-
-
 </style>

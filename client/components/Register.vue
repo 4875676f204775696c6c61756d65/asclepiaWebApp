@@ -1,25 +1,6 @@
 <template>
   <div>
-      
     <div class="sfc"></div>
-
-    <!--
-
-    <div v-if="isConnected()" class="center">
-      <h2>Enregistrer vous !</h2>
-      <input type="text" placeholder="Pseudo" v-model="email" />
-      <input type="text" placeholder="Mot de passe" v-model="password" />
-      <button @click="createUsers()">S'inscrire</button>
-    </div>
-
-    <div v-else class="center">
-
-      <h3> Vous etes deja logger. Deconnecter vous pour creer un autre compte. </h3>
-      <input type="button" value="Se deconnecter" @click="logOut()">
-
-    </div>
-    
-    -->
 
     <div class="body text-center" v-if="isConnected()">
       <form class="form-signin">
@@ -30,10 +11,12 @@
           width="72"
           height="72"
         />
-        <h1 class="h3 mb-3 font-weight-normal">Veuillez renseigner les champs suivants</h1>
+        <h1 class="h3 mb-3 font-weight-normal">
+          Pour créer un compte veuillez renseigner les champs suivants
+        </h1>
         <input
           type="text"
-          id="inputEmail"
+          id="inputPsuedo"
           class="form-control"
           placeholder="Pseudo"
           v-model="pseudo"
@@ -46,13 +29,48 @@
           placeholder="Password"
           v-model="mdp"
         />
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          placeholder="Nom"
+          v-model="nom"
+        />
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          placeholder="Prénom"
+          v-model="prenom"
+        />
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          placeholder="Numero pro"
+          v-model="numpro"
+        />
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          placeholder="Numero perso"
+          v-model="numperso"
+        />
+        <input
+          type="password"
+          id="inputPassword"
+          class="form-control"
+          placeholder="Specialité ou poste"
+          v-model="specialite"
+        />
         <label for="inputRole" class="sr-only">Role</label>
         <select id="inputRole" class="form-control" v-model="role">
           <option value="medecin" selected> Médecin </option>
           <option value="administratif"> Personnel administratif </option>
         </select>
-        <button class="btn btn-lg btn-block selfbutton" @click="logIn()">
-          Sign in
+        <button class="btn btn-lg btn-block selfbutton" @click="register()">
+          Créer le compte
         </button>
         <p class="mt-5 mb-3 text-muted">&copy; 2020-2021</p>
       </form>
@@ -60,15 +78,9 @@
 
     <div class="formulaire" v-else>
       <button class="btn btn-lg btn-block selfbutton" @click="logOut()">
-          Se deconnecter
+        Se deconnecter
       </button>
     </div>
-
-    <div id='statusInfo' class="center">
-      <div> Statut : {{ getStatus() }} </div>
-      <div v-if="!isConnected()"> Info : {{ account.nom }} {{ account.prenom }} </div>
-    </div>
-    
   </div>
 </template>
 
@@ -79,35 +91,47 @@ module.exports = {
   },
   data() {
     return {
-      email: "",
+      numperso: "",
       mdp: "",
       pseudo: "",
       role: "",
+      numpro: "",
+      nom: "",
+      prenom: "",
+      specialite: ""
     };
   },
   async mounted() {},
   methods: {
-    async logOut(){
-      this.$emit('log-out')
+    async logOut() {
+      this.$emit("log-out");
     },
-    getStatus(){
-      if(this.account.loggedAt != null){
-        return 'Connecté'
-      }else{
-        return 'Non connecté'
+    getStatus() {
+      if (this.account.loggedAt != null) {
+        return "Connecté";
+      } else {
+        return "Non connecté";
       }
-    },    
+    },
     isConnected() {
-
-      if(this.account.loggedAt != null){
-        return false
-      }else{
-        return true
+      if (this.account.loggedAt != null) {
+        return false;
+      } else {
+        return true;
       }
-
     },
-    async logOut(){
-      this.$emit('log-out')
+    register() {
+      this.$emit(
+        "register",
+        this.nom,
+        this.prenom,
+        this.pseudo,
+        this.mdp,
+        this.specialite,
+        this.numpro,
+        this.numperso,
+        this.role
+      );
     }
   }
 };
@@ -133,20 +157,16 @@ module.exports = {
 }
 
 @media (max-width: 825px) {
-  
   .formulaire {
     text-align: center;
     margin-top: 40%;
     margin-right: 10%;
     margin-left: 10%;
   }
-
 }
 
 template {
-
   height: 100%;
-
 }
 
 .body {
@@ -195,22 +215,15 @@ template {
 }
 
 .selfbutton {
-
   background-color: darkcyan;
   color: antiquewhite;
-
 }
 
 .selfbutton:hover {
-
   color: dimgrey;
-
 }
 
 select {
-
   margin: 5px;
-
 }
-
 </style>
